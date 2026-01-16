@@ -12,5 +12,5 @@ Performance metrics such as sMAPE, MAPE, MAE, and RMSE will be reported both bef
 
 The top model will undergo further and more deep analysis to establish features with the most significant impact on sales, casuing fluctuations. Ablation tests and permutation importance will be carried out to establish this, with relevant visualisations being produced.
 
-The approach which presents the best time-aware accuracy will be integrated into the full-stack `ML-Restaurant-Forecasting-System` web-application, which will be resumed after this project.
+The approach which presents the best time-aware accuracy will be integrated into the full-stack `Hospitality-Sales-Forecasting-Platform` web-application, which will be resumed after this project.
 
