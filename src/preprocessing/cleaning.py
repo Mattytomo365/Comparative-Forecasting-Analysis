@@ -49,6 +49,11 @@ def handle_missing(df):
     out = df.copy()
     out["day_of_week"] = out["date"].dt.day_name() # adds day-of-week feature for day-specific medians
     m_sales = out["sales"].isna()
+    missing_sum = int(m_sales)
+    m_holiday = out["holiday"].notna() & out["holiday"].ne("")
+
+    # set 0 for missing sales on holidays due to closures
+    out.loc[m_sales & m_holiday, "sales"] = 0
 
     med_global = (out.loc[~m_sales, "sales"]).median() # median sales for fallback use
     med_dow = ( # median sales for certain weekdays
@@ -57,15 +62,15 @@ def handle_missing(df):
         .median()
     )
 
-    # impute sales
+    # impute remaining missing sales
+    m_sales = out["sales"].isna() # recompute after holiday fill
     if m_sales.any():
         out.loc[m_sales, "sales"] = (out.loc[m_sales, "day_of_week"].map(med_dow).fillna(med_global).round(0)) # maps imputable sales rows through day-specific median using global median as fallback
 
-    # out = out.loc[m_sales].reset_index(drop=True) # drops rows were missing sales figures persist
 
     summary = { # summry report of imput & drop sums
         "datast cleaned: "
-        "imputed_sales_rows": int(m_sales.sum()),
+        "imputed_sales_rows": missing_sum,
         "med_global": float(med_global),
     }     
 
