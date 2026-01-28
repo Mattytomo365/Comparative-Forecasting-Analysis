@@ -1,5 +1,4 @@
-import pandas as pd, hashlib, datetime as dt, numpy as np
-import re
+import pandas as pd, numpy as np
 '''
 Data pre-processing & cleaning
 '''
@@ -49,7 +48,7 @@ def handle_missing(df):
     out = df.copy()
     out["day_of_week"] = out["date"].dt.day_name() # adds day-of-week feature for day-specific medians
     m_sales = out["sales"].isna()
-    missing_sum = int(m_sales)
+    missing_sum = int(m_sales.sum())
     m_holiday = out["holiday"].notna() & out["holiday"].ne("")
 
     # set 0 for missing sales on holidays due to closures

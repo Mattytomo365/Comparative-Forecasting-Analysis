@@ -52,16 +52,7 @@ def fit_onehot_schema(df, weather_col="weather", internal_col="internal_events",
             for val in df[col]:
                 for category in [tag.strip() for tag in val.split(";") if tag.strip()]: # separates into individual categories
                     categories.add(standardise_categories(category))
-            schema[f"{key}"] = sorted(categories)
-    
-    # # day of week (single)
-    # if dow_col in df.columns:
-    #     ordered = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
-    #     days_present = set(df[dow_col].str[:3]) # abbreviate category names
-    #     days = [d for d in ordered if d in days_present] # avoids errenous data
-    #     days = [standardise_categories(d) for d in days]
-    #     schema["day_of_week"] = days
-    
+            schema[f"{key}"] = sorted(categories)  
     return schema
 
 # apply fitted schema to onehot methods
@@ -87,11 +78,6 @@ def apply_onehot_schema(df, schema, drop_original=False):
     if "holiday" in schema and "holiday" in df.columns:
         onehot_h = onehot_multi(df, "holiday", schema["holiday"])
         onehot_cols.append(onehot_h)
-    
-    # # day of week
-    # if "day_of_week" in schema and "day_of_week" in df.columns:
-    #     onehot_d = onehot_single(df.assign(day_of_week=df["day_of_week"].str[:3]), "day_of_week", schema["day_of_week"])
-    #     onehot_cols.append(onehot_d)
     
     out = pd.concat(onehot_cols, axis=1)
 
