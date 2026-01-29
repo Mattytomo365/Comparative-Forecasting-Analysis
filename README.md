@@ -4,7 +4,7 @@
 
 This is my BSc Computer Science capstone project. The aim is to establish an accurate and efficient approach to time-series forecasting for hospitality sales. 
 
-Three models - ARIMA, XGBoost, Lasso - will all be trained and tested on the same cleaned and preprocessed dataset. The dataset contains exogenous factors (e.g. weather/events/holidays) and engineered features (Fourier/cyclical features and lags/rolling statistics) to establish more meaningful relationships between catgeories and model seasonality throughout.
+Three models - ARIMA, XGBoost, Lasso - will all be trained and tested on the same cleaned and preprocessed dataset. The dataset contains exogenous factors (e.g. weather/events/holidays), added using publicly available sources, and engineered features (Fourier/cyclical features and lags/rolling statistics) to establish more meaningful relationships between catgeories and model seasonality throughout.
 
 Onehot schema generated during data encoding will be persisted and re-used, minimising drifts in data between train/test and inference. Models will also be tested using rolling-origin backtesting, reducing overfitting of models and the leakage of data, and models will be cross-validated with a time-aware expanding/rolling window approach, paired with hyperparameter tuning to establish parameter configurations which yeild the best accuracy.
 
