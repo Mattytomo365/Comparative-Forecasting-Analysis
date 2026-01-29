@@ -1,4 +1,4 @@
-# Experimental Evalutation of Forecasting Approaches to Restaurant Sales
+# Experimental Evalutation of Forecasting Approaches to Hospitality Sales
 
 ## Overview
 
