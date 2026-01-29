@@ -1,0 +1,82 @@
+tag,n,avg,uplift,factor,month
+new year's day,1,0.0,-99.99999999999999,holiday,1
+valentine's day,1,1408.0,-8.2629435718441,holiday,2
+st patrick's day,1,4396.0,260.2731825770223,holiday,3
+mother's day,1,2114.0,73.25239034754894,holiday,3
+easter sunday,1,1758.0,44.07649112156624,holiday,3
+good friday,1,1070.0,-12.308392775838522,holiday,3
+st george's day,1,935.0,-46.62045060658579,holiday,4
+easter monday,1,463.0,-73.5671322255072,holiday,4
+spring bank holiday,1,880.0,-42.584593232541394,holiday,5
+early may bank holiday,1,469.0,-69.40019798416127,holiday,5
+father's day,1,2204.0,110.9090909090909,holiday,6
+summer bank holiday,1,0.0,-100.0,holiday,8
+halloween,1,3486.0,69.5937728046704,holiday,10
+bonfire night,1,1116.0,-27.52110720444315,holiday,11
+new year's eve,1,3750.0,131.65880056339418,holiday,12
+boxing day,1,1783.0,10.146037707875164,holiday,12
+christmas day,1,0.0,-100.0,holiday,12
+christmas eve,1,0.0,-100.0,holiday,12
+"dj, football screening",4,2259.25,119.3872596620703,internal_event,1
+"quiz, bingo, karaoke",4,1871.75,81.7585939017285,internal_event,1
+karaoke,8,1669.5,62.11885803068558,internal_event,1
+student social night,5,1249.2,21.30510778791999,internal_event,1
+"dj, football screening",4,2792.5,227.61401965097522,internal_event,2
+karaoke,8,1931.75,126.63147089015985,internal_event,2
+student social night,4,1340.25,57.23713154421469,internal_event,2
+"quiz, bingo, karaoke",5,1115.8,30.904824754362807,internal_event,2
+"karaoke, promotions",1,4396.0,739.933126343444,internal_event,3
+"dj, football screening",5,1763.2,236.8903749701457,internal_event,3
+karaoke,9,1712.111111111111,227.12894408619272,internal_event,3
+"quiz, bingo, karaoke",4,1340.75,156.17387150704562,internal_event,3
+student social night,4,1028.0,96.41748268449965,internal_event,3
+"student social night, promotions",1,4758.0,388.7519260400616,internal_event,4
+"dj, football screening",4,2415.75,148.15100154083206,internal_event,4
+karaoke,8,2036.5,109.19363122752954,internal_event,4
+student social night,3,1438.3333333333333,47.748673172401986,internal_event,4
+"quiz, bingo, karaoke",4,1420.0,45.865434001027225,internal_event,4
+"dj, football screening",4,2290.5,312.424037812289,internal_event,5
+karaoke,9,2049.1111111111113,268.9599119713907,internal_event,5
+"quiz, bingo, karaoke",5,1679.6,202.42628854377674,internal_event,5
+student social night,5,1070.4,92.73463875759623,internal_event,5
+"dj, football screening",5,1932.0,225.73234984193886,internal_event,6
+karaoke,8,1314.0,121.53846153846155,internal_event,6
+"quiz, bingo, karaoke",4,1228.0,107.03898840885142,internal_event,6
+student social night,4,408.75,-31.085353003161224,internal_event,6
+"karaoke, football screening",1,4614.0,716.2759840778417,internal_event,7
+"dj, football screening",4,1927.25,240.95532950022113,internal_event,7
+karaoke,7,1155.7142857142858,104.46073166108548,internal_event,7
+promotions,2,1145.5,102.65369305616983,internal_event,7
+"quiz, bingo, karaoke",4,1049.5,85.67005749668289,internal_event,7
+student social night,5,886.6,56.85095090667846,internal_event,7
+"dj, football screening",5,1698.4,255.03527567285082,internal_event,8
+"quiz, bingo, karaoke",5,1081.2,126.01515547426183,internal_event,8
+karaoke,9,1041.888888888889,117.79752054118399,internal_event,8
+student social night,4,586.5,22.60256075254769,internal_event,8
+"dj, football screening",4,2136.5,139.95507510880248,internal_event,9
+karaoke,9,1966.4444444444443,120.85575678163072,internal_event,9
+"quiz, bingo, karaoke",3,1463.6666666666667,64.38766437362536,internal_event,9
+"quiz, bingo, karaoke, football screening",1,1249.0,40.27797276428471,internal_event,9
+student social night,4,1057.5,18.77018110346764,internal_event,9
+football screening,1,851.0,-4.422293977256774,internal_event,9
+"dj, football screening",4,2922.5,146.9950230068551,internal_event,10
+student social night,5,2651.0,124.04920649826276,internal_event,10
+"quiz, bingo, karaoke",5,2469.0,108.66748051460232,internal_event,10
+karaoke,8,2151.5,81.83397502112875,internal_event,10
+"dj, football screening",5,2692.6,327.687769457681,internal_event,11
+"karaoke, football screening, promotions",1,1759.0,179.39641479464493,internal_event,11
+student social night,4,1727.25,174.35330156569097,internal_event,11
+karaoke,8,1620.125,157.3377581120944,internal_event,11
+"quiz, bingo, karaoke",4,1380.5,119.27615157703653,internal_event,11
+promotions,1,748.0,18.81098252779669,internal_event,11
+"dj, football screening",4,2780.5,166.35976583288982,internal_event,12
+karaoke,8,1734.875,66.19345396487493,internal_event,12
+"quiz, bingo, karaoke",4,1579.0,51.26130920702501,internal_event,12
+student social night,4,1322.5,26.6897285790314,internal_event,12
+grand national,3,2502.3333333333335,57.35746226942427,external_event,4
+ormskirk medieval festival (coronation park),2,2224.5,56.01842894456806,external_event,5
+ormskirk gingerbread festival,1,4614.0,343.0432416861377,external_event,7
+ormskirk festival (summer bank holiday),1,1369.0,46.26589265999501,external_event,8
+edge hill freshers week,1,1928.0,32.61859582542695,external_event,9
+edge hill freshers week,4,3334.75,73.77875781672199,external_event,10
+ormskirk christmas lights switch-on,1,1950.0,29.053606882859032,external_event,11
