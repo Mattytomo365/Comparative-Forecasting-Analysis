@@ -2,6 +2,7 @@ import numpy as np, pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from figures.save_figure import save_figure
+from statsmodels.graphics.tsaplots import plot_acf
 '''
 User-facing eda on historical data to uncover trends and patterns
 '''
@@ -165,6 +166,24 @@ def fourier_unit_circle(df, cos_col, sin_col, title, name):
     plt.close(fig)
 
 
+# generates autocorrelation plots
+def acf_plot(df, col, name):
+    series = df[col].astype(float)
+    diff = series.diff().dropna()
+
+    fig, axes = plt.subplots(2, 1)
+
+    axes[0].plot(diff)
+    axes[0].set_title("1st Order Differencing")
+    axes[0].grid(True, which="major", linestyle=":", linewidth=0.8, alpha=0.7)
+
+    plot_acf(diff, ax=axes[1])
+    axes[1].set_title("ACF (1st Order Differencing)")
+    
+    save_figure(fig, name)
+    plt.close(fig)
+
+
 # centralised function
 def plot_all(df):
 
@@ -179,6 +198,9 @@ def plot_all(df):
     # fourier unit-circle plots
     fourier_unit_circle(df, "dow_cos", "dow_sin", "Cyclical day-of-week scatter plot", "fourier_unit_weekly")
     fourier_unit_circle(df, "doy_cos", "doy_sin", "Cyclical day-of-year scatter plot", "fourier_unit_daily")
+
+    # ACF plot
+    acf_plot(df, "sales", "acf_sales")
 
     # monthly average for specified 
     monthly_averages = monthly_avg(df, "sales")

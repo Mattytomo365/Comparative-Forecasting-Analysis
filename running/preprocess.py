@@ -34,8 +34,7 @@ def run(raw_path="data/sales_daily.csv", out_path="data/sales_daily_processed.cs
     df_feature = add_all_features(df_onehot)
     print(df_feature)
     df_feature.to_csv(out_path, index=False, mode="w")
-    
 
-# do i still need this???
+
 if __name__ == "__main__": # used for running script outside of vscode, add argparsing to complete configuration
     run()
