@@ -2,7 +2,7 @@ import numpy as np, pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from figures.save_figure import save_figure
-from statsmodels.graphics.tsaplots import plot_acf
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 '''
 User-facing eda on historical data to uncover trends and patterns
 '''
@@ -115,7 +115,6 @@ def fourier_basis_wave(df, sin_col, cos_col, k, title, name):
     monthly_labels(ax)
 
     save_figure(fig, name)
-    plt.close(fig)
 
 # plots linear combination of baseline waves, visualises what linear models perform on yearly fourier features to understand seasonal shape
 def seasonal_curve(df, target_col_name, k, title):
@@ -149,7 +148,6 @@ def seasonal_curve(df, target_col_name, k, title):
     monthly_labels(ax)
 
     save_figure(fig, "fourier_seasonal")
-    plt.close(fig)
 
 
 # generates unit-circle plots of fourier features, helping visualise the circular pattern
@@ -163,25 +161,26 @@ def fourier_unit_circle(df, cos_col, sin_col, title, name):
     ax.grid(True, which="major", linestyle=":", linewidth=0.8, alpha=0.7)
 
     save_figure(fig, name)
-    plt.close(fig)
 
 
 # generates autocorrelation plots
-def acf_plot(df, col, name):
+def acf_plots(df, col, name):
     series = df[col].astype(float)
     diff = series.diff().dropna()
 
-    fig, axes = plt.subplots(2, 1)
+    fig, axes = plt.subplots(3, 1)
 
     axes[0].plot(diff)
     axes[0].set_title("1st Order Differencing")
     axes[0].grid(True, which="major", linestyle=":", linewidth=0.8, alpha=0.7)
+    fig.tight_layout()
 
     plot_acf(diff, ax=axes[1])
+    plot_pacf(diff, ax=axes[2])
     axes[1].set_title("ACF (1st Order Differencing)")
+    axes[2].set_title("PACF (1st Order Differencing)")
     
     save_figure(fig, name)
-    plt.close(fig)
 
 
 # centralised function
@@ -200,7 +199,7 @@ def plot_all(df):
     fourier_unit_circle(df, "doy_cos", "doy_sin", "Cyclical day-of-year scatter plot", "fourier_unit_daily")
 
     # ACF plot
-    acf_plot(df, "sales", "acf_sales")
+    acf_plots(df, "sales", "acf_sales")
 
     # monthly average for specified 
     monthly_averages = monthly_avg(df, "sales")

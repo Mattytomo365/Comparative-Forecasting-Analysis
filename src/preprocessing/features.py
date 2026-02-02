@@ -26,7 +26,7 @@ def add_cyclical(df):
 
 # adds lags to capture short-term momentum and weekday repitition
 def add_lags(df):
-    lags = (1, 7, 14, 28) # maintain the same day of week
+    lags = (1, 7, 14, 21) # informed by acf plots
     out = df.copy()
 
     for lag in lags:
