@@ -184,21 +184,6 @@ def acf_plots(df, col, diff, name, title):
     
     save_figure(fig, name)
 
-# # generates seasonal autocorrelation plots
-# def seasonal_acf(df, col, name):
-#     series = df[col].astype(float)
-#     diff = series.diff(7).dropna() # 1st order (seasonal) differencing
-
-#     fig, axes = plt.subplots(2, 1)
-#     fig.tight_layout()
-
-#     plot_acf(diff, ax=axes[0])
-#     plot_pacf(diff, ax=axes[1])
-#     axes[0].set_title("Seasonal ACF (1st Order Differencing)")
-#     axes[1].set_title("Seasonal PACF (1st Order Differencing)")
-    
-#     save_figure(fig, name)
-
 # performs time-series seasonal decomposition
 def decomposition_plot(df, name):
     fig, ax = plt.subplots()
