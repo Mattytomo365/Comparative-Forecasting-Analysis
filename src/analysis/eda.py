@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from figures.save_figure import save_figure
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from statsmodels.tsa.seasonal import seasonal_decompose
+from statsmodels.tsa.stattools import adfuller
 '''
 User-facing eda on historical data to uncover trends and patterns
 '''
@@ -164,23 +166,53 @@ def fourier_unit_circle(df, cos_col, sin_col, title, name):
 
 
 # generates autocorrelation plots
-def acf_plots(df, col, name):
+def acf_plots(df, col, diff, name, title):
     series = df[col].astype(float)
-    diff = series.diff().dropna()
+    diff = series.diff(diff).dropna() # 1st order (non-seasonal/seasonal) differencing
 
     fig, axes = plt.subplots(3, 1)
 
     axes[0].plot(diff)
-    axes[0].set_title("1st Order Differencing")
+    axes[0].set_title(title)
     axes[0].grid(True, which="major", linestyle=":", linewidth=0.8, alpha=0.7)
     fig.tight_layout()
 
     plot_acf(diff, ax=axes[1])
     plot_pacf(diff, ax=axes[2])
-    axes[1].set_title("ACF (1st Order Differencing)")
-    axes[2].set_title("PACF (1st Order Differencing)")
+    axes[1].set_title(f"ACF {title}")
+    axes[2].set_title(f"PACF {title}")
     
     save_figure(fig, name)
+
+# # generates seasonal autocorrelation plots
+# def seasonal_acf(df, col, name):
+#     series = df[col].astype(float)
+#     diff = series.diff(7).dropna() # 1st order (seasonal) differencing
+
+#     fig, axes = plt.subplots(2, 1)
+#     fig.tight_layout()
+
+#     plot_acf(diff, ax=axes[0])
+#     plot_pacf(diff, ax=axes[1])
+#     axes[0].set_title("Seasonal ACF (1st Order Differencing)")
+#     axes[1].set_title("Seasonal PACF (1st Order Differencing)")
+    
+#     save_figure(fig, name)
+
+# performs time-series seasonal decomposition
+def decomposition_plot(df, name):
+    fig, ax = plt.subplots()
+    decomposition = seasonal_decompose(df["sales"], model='additive', period=7) # weekly seasonal decomposition of sales
+    fig = decomposition.plot()
+    ax.set_title("Seasonal decomposition plot")
+    save_figure(fig, name)
+
+# performs augmented dickey-fuller test
+def perform_adf(df):
+    adf_test = adfuller(df["sales"])
+    # output the results
+    print('ADF Statistic: %f' % adf_test[0])
+    print('p-value: %f' % adf_test[1])
 
 
 # centralised function
@@ -198,8 +230,13 @@ def plot_all(df):
     fourier_unit_circle(df, "dow_cos", "dow_sin", "Cyclical day-of-week scatter plot", "fourier_unit_weekly")
     fourier_unit_circle(df, "doy_cos", "doy_sin", "Cyclical day-of-year scatter plot", "fourier_unit_daily")
 
-    # ACF plot
-    acf_plots(df, "sales", "acf_sales")
+    # ACF plots seasonal/non-seasonal
+    acf_plots(df, "sales", 1, "acf_sales", "1st Order Non-Seasonal Differencing")
+    acf_plots(df, "sales", 7, "acf_sales_seasonal", "Seasonal Differencing with Period 7")
+
+
+    # decomposition plot
+    decomposition_plot(df, "seasonal_decompose")
 
     # monthly average for specified 
     monthly_averages = monthly_avg(df, "sales")
