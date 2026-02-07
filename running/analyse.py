@@ -8,14 +8,13 @@ Produces figures and metrics which explain sales drivers and patterns
 
 def run(data_path="data/sales_daily_processed.csv"):
     df = load_csv(data_path)
-    weekday_avg, monthly_avg, uplifts = plot_all(df)
+    weekday_avg, monthly_avg = plot_all(df)
     print("date min:", df["date"].min())
     print("date max:", df["date"].max())
     print("n_rows:", len(df))
 
     save_results(weekday_avg, "weekday averages") # save results to /results for later use
     save_results(monthly_avg, "monthly averages")
-    save_results(uplifts, "sales uplifts")
 
 if __name__ == "__main__": # used for running script outside of vscode, add argparsing to complete configuration
     run()

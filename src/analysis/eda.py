@@ -10,10 +10,9 @@ User-facing eda on historical data to uncover trends and patterns
 '''
 
 DOW_ORDER = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"] # tuple [] for a set order
-UPLIFT_COLS = ["holiday", "internal_event", "external_event"] # skips numerical columns for sales uplift calculations
 
 # mean metric per calendar month
-def monthly_avg(df, metric):
+def monthly_avg(df, metric, name):
     d = df["date"]
     month = d.dt.to_period("M") # returns year-month keys to group by year-month
     month_m = (df.groupby(month)[metric].agg(value="mean", n_days="count") # aggregating groups to compute mean and n_days 
@@ -24,6 +23,21 @@ def monthly_avg(df, metric):
     month_m["label"] = month_m["month"].dt.strftime("%b %Y")
     month_m["value"] = month_m["value"].astype(float).round(2) # rounding
     month_m["n_days"] = month_m["n_days"].astype(int)
+
+    fig, ax = plt.subplots()
+    m = month_m["month"].dt.to_timestamp()
+    a = month_m["value"]
+
+    ax.bar(m, a, width=20, alpha=0.35, label="daily avg")
+    ax.plot(m, a, marker="o", linewidth=1.5, label="trend")
+
+    ax.set_xlabel("month")
+    ax.set_ylabel("average sales")
+    ax.set_title("Average daily sales per month")
+    ax.grid(True, which="major", linestyle=":", linewidth=0.8, alpha=0.7)
+    monthly_labels(ax)
+    save_figure(fig, name)
+
     return pd.DataFrame(month_m[["month", "label", "value", "n_days"]])
 
 # mean metric by weekday for a specified month
@@ -43,55 +57,40 @@ def weekday_avg(df, month, metric):
     day_m["value"] = day_m["value"].astype(float).round(2) # rounding for user interface
     return pd.DataFrame(day_m[["dow", "value"]])
 
+# generate line and bar graphs of weekday averages for individual months
+def weekday_avg_plot(weekday_averages):
 
-# compute uplift of specified factors against specified metric
-def uplifts(df, factor, month, metric, sep=";"):
+    df = pd.concat(weekday_averages, ignore_index=True)
 
-    OUT_COLS = ["tag", "n", "avg", "uplift"]
-    d = df["date"]
-    m = d.dt.month.eq(int(month)) # builds boolean mask for selected month
+    fig, ax = plt.subplots()
+    # d = df["dow"]
+    # m = df["month"].dt.to_timestamp()
+    # a = df["value"]
 
-    if not m.any(): # fallback if selected month doesnt exist
-        return pd.DataFrame(columns=OUT_COLS)
-    
-    sub = df.loc[m].copy()
-    s = sub[factor].fillna("").astype(str).str.strip().str.lower() # normalises factor column into clean strings
+    # ax.bar(m, a, width=20, alpha=0.35, label="weekday avg")
+    # ax.plot(m, a, marker="o", linewidth=1.5, label="trend")
 
-    if factor in UPLIFT_COLS:
-        tags_list = s.apply(lambda val: [tag.strip() for tag in val.split(sep) if tag.strip() and tag.strip() != "none"]) # splits multi-tag strings into a list of tags
-        base_mask = tags_list.str.len().eq(0) # marks baseline days as days without tags
-        baseline = (sub.loc[base_mask])[metric].mean() # mean metric of days without events within the month
+    # ax.set_xlabel("month")
+    # ax.set_ylabel("average sales")
+    # ax.set_title("Average weekday sales per month")
+    # ax.grid(True, which="major", linestyle=":", linewidth=0.8, alpha=0.7)
+    # save_figure(fig, "weekday_average_separated")
 
-        # add helper columns 
-        sub["tags"] = tags_list # attach tag if any
+    # weekday averages across all months
+    by_dow = df.groupby("dow")["value"].mean().reindex(DOW_ORDER)
+    ax.bar(by_dow.index, by_dow.values, alpha=0.35, label="weekday avg")
+    ax.plot(by_dow.index, by_dow.values, marker="o", linewidth=1.5, label="trend")
+    ax.set_xlabel("weekday")
+    ax.set_ylabel("average sales")
+    ax.set_title("Average weekday sales across all months")
+    ax.grid(True, which="major", linestyle=":", linewidth=0.8, alpha=0.7)
+    save_figure(fig, "weekday_average_total")
 
-        # explode tags to individual rows
-        sub = (sub.explode("tags").rename(columns={"tags": "tag"}))
-        sub = sub[["date", "tag", metric]].drop_duplicates(subset=["date", "tag"])
 
-        sub["baseline"] = baseline # sets baseline to month baseline for other factors
 
-        # filter out rows with no event or an invalid baseline
-        sub = sub.loc[~base_mask & sub["baseline"].notna()]
-
-        # fallback
-        if sub.empty or pd.isna(baseline) or baseline == 0: # guards uplift calculation against NaN and 0
-            return pd.DataFrame(columns=OUT_COLS)
-        
-    else:
-        return pd.DataFrame(columns=OUT_COLS)
-        
-    # calculate percentage uplift per row against baseline
-    sub["uplift_row"] = 100.0 * (sub[metric] - sub["baseline"]) / sub["baseline"]
-
-    # aggregate per tag - collapse daily rows into a few group-level numbers
-    tab = (sub.groupby("tag")
-        .agg(n=("date", "nunique") # unique days tag occurs
-             , avg=(metric, "mean") # mean metric on tagged days
-             , uplift=("uplift_row", "mean")) # mean % uplift across occurrences
-        .reset_index().sort_values("avg", ascending=False))
-    
-    return pd.DataFrame(tab[OUT_COLS])
+# generates a box plot to visualise sales distribution
+def sales_distribution(df, name):
+    pass
 
 # helper function to improve visibility of values on x-axis
 def monthly_labels(ax):
@@ -206,7 +205,7 @@ def plot_all(df):
     # fourier baseline waves
     fourier_basis_wave(df, "dow_sin", "dow_cos", 1, "Weekly Fourier basis", "fourier_basis_monthly")
     fourier_basis_wave(df, "doy_sin", "doy_cos", 1, "Yearly Fourier basis", "fourier_basis_yearly")
-    fourier_basis_wave(df, "doy_sin_2", "doy_cos_2", 2, "Yearly Fourier basis", "fourier_basis_yearly_k2") # k=2 adds an extra Fourier harmonic so the model can capture more complex seasonality
+    fourier_basis_wave(df, "doy_sin_2", "doy_cos_2", 2, "Yearly Fourier basis 2nd Harmonic", "fourier_basis_yearly_k2") # k=2 adds an extra Fourier harmonic so the model can capture more complex seasonality
 
     # seasonal curves
     seasonal_curve(df, "sales", 2, "Sales seasonal curve") # plot k=1?
@@ -224,7 +223,7 @@ def plot_all(df):
     decomposition_plot(df, "seasonal_decompose")
 
     # monthly average for specified 
-    monthly_averages = monthly_avg(df, "sales")
+    monthly_averages = monthly_avg(df, "sales", "monthly_average")
 
     # weekday average for specified metric
     weekday_averages = []
@@ -233,13 +232,8 @@ def plot_all(df):
         average["month"] = month
         weekday_averages.append(average)
 
-    # percentage uplift for specified factor, month, and metric
-    all_uplifts = []
-    for factor in UPLIFT_COLS:
-        for month in range(1, 13):
-            uplift = uplifts(df, factor, month, "sales")
-            uplift["factor"] = factor
-            uplift["month"] = month
-            all_uplifts.append(uplift)
+    weekday_avg_plot(weekday_averages)
 
-    return pd.concat(weekday_averages, ignore_index=True), monthly_averages, pd.concat(all_uplifts, ignore_index=True)
+
+
+    return pd.concat(weekday_averages, ignore_index=True), monthly_averages
