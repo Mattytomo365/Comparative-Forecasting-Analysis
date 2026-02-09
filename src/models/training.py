@@ -29,7 +29,7 @@ def train_model(train, test, kind, features, target, params):
         preds = results.get_forecast(steps=len(X_test), exog=X_test).predicted_mean
 
     if kind == "xgboost": # early stopping implementation
-        model.fit(X_train, y_train, early_stopping_rounds=10, eval_metric="mae", eval_set=[(X_test, y_test)], verbose=False)
+        model.fit(X_train, y_train, early_stopping_rounds=10, eval_metric="mae", eval_set=[(X_test, y_test)], verbose=True)
         preds = model.predict(X_test)
 
     else:
@@ -39,5 +39,5 @@ def train_model(train, test, kind, features, target, params):
     oos = test[["date"]].copy() # out of sample dataset containing all unseen data and the corresponding predictions
     oos["Actual data"] = y_test
     oos["Forecasted data"] = preds
-    metrics = calculate_metrics(y_test, preds) # calculate metrics for current window predicted
+    metrics = calculate_metrics(y_test, y_train, preds) # calculate metrics for current window predicted
     return oos, metrics, model

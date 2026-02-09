@@ -16,7 +16,7 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
     # train on suitable default parameter combinations first to give performance baselines
     for kind, default_params in[
         ("lasso", {"alpha": 1.0}), # lasso
-        ("arima", {"order": (1, 1, 1)}), # ARIMA
+        ("sarima", {"order": (0, 1, 1), "seasonal_order": (0, 1, 1, 7)}), # SARIMA
         ("xgb", {"n_estimators": 400, "max_depth": 6, "learning_rate": 0.05}) # XGBoost
     ]:
         oos, metrics, model = backtest(df, kind, features, default_params, target)
@@ -32,13 +32,12 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
             "alpha": [0.1, 0.3, 1.0, 3.0, 10.0], # pipeline returns StandardScaler
         },
 
-        "arima": { # ARIMA
+        "sarima": { # SARIMA
             "order": [(1, 1, 1), (2, 1, 1), (1, 1, 2)],
             "seasonal_order": [(0,1,1,7), (1,1,0,7), (1,1,1,7)],
         },
 
         "xgb": { # XGBoost
-            # Implement early stopping!!!!!
             "n_estimators": [600, 900],
             "learning_rate": [0.03, 0.05, 0.1],
             "max_depth": [4, 6],

@@ -63,18 +63,6 @@ def weekday_avg_plot(weekday_averages):
     df = pd.concat(weekday_averages, ignore_index=True)
 
     fig, ax = plt.subplots()
-    # d = df["dow"]
-    # m = df["month"].dt.to_timestamp()
-    # a = df["value"]
-
-    # ax.bar(m, a, width=20, alpha=0.35, label="weekday avg")
-    # ax.plot(m, a, marker="o", linewidth=1.5, label="trend")
-
-    # ax.set_xlabel("month")
-    # ax.set_ylabel("average sales")
-    # ax.set_title("Average weekday sales per month")
-    # ax.grid(True, which="major", linestyle=":", linewidth=0.8, alpha=0.7)
-    # save_figure(fig, "weekday_average_separated")
 
     # weekday averages across all months
     by_dow = df.groupby("dow")["value"].mean().reindex(DOW_ORDER)
@@ -85,7 +73,6 @@ def weekday_avg_plot(weekday_averages):
     ax.set_title("Average weekday sales across all months")
     ax.grid(True, which="major", linestyle=":", linewidth=0.8, alpha=0.7)
     save_figure(fig, "weekday_average_total")
-
 
 
 # generates a box plot to visualise sales distribution
@@ -218,7 +205,6 @@ def plot_all(df):
     acf_plots(df, "sales", 1, "acf_sales", "1st Order Non-Seasonal Differencing")
     acf_plots(df, "sales", 7, "acf_sales_seasonal", "Seasonal Differencing with Period 7")
 
-
     # decomposition plot
     decomposition_plot(df, "seasonal_decompose")
 
@@ -233,7 +219,5 @@ def plot_all(df):
         weekday_averages.append(average)
 
     weekday_avg_plot(weekday_averages)
-
-
 
     return pd.concat(weekday_averages, ignore_index=True), monthly_averages

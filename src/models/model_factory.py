@@ -29,7 +29,7 @@ def make_estimator(X_train, y_train, kind, params):
          return XGBRegressor(random_state=42, n_jobs=-1, **params)
     # SARIMAX - seasonal extension of ARIMA with exogenous factors included
     if kind == "sarimax":
-         return SARIMAX(endog=y_train, exog=X_train, order=(0, 1, 1), seasonal_order=(0, 1, 1, 7), **params) # parameters informed by ACF/PACF seasonal/non-seasonal plots, endogenous and exogenous factors included
+         return SARIMAX(endog=y_train, exog=X_train, **params) # parameters informed by ACF/PACF seasonal/non-seasonal plots, endogenous and exogenous factors included
     raise ValueError(f"Unkown kind: {kind}")
 
 
