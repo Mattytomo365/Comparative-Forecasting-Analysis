@@ -1,5 +1,6 @@
-from sklearn.pipeline import make_pipeline
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
 from sklearn.linear_model import Lasso
 from xgboost import XGBRegressor
 from sklearn.model_selection import ParameterGrid
@@ -19,17 +20,24 @@ def feature_cols(df):
 def mae(test, pred):
      return float(mean_absolute_error(test, pred))
 
+# creates a machine learning model estimator used to fit onto training data based on the kind of model provided
 def make_estimator(X_train, y_train, kind, params):
-    # pipelines used with linear models to fit StandardScaler (scales data) before fitting the estimator
-    # Ridge
+    # Lasso
     if kind == "lasso":
-         return make_pipeline(StandardScaler(), Lasso(random_state=42, **params)) # sets higher penality strength for more bias and less variance
+         lasso_pipe = Pipeline([ # pipelines used with linear models to fit StandardScaler (scales data) before fitting the estimator
+               ("imputer", SimpleImputer(strategy="median", add_indicator=True)), # lasso cant compute NaNs
+               ("scaler", StandardScaler()),  # sets higher penality strength for more bias and less variance
+               ("model", Lasso(**params))
+          ])
+         return lasso_pipe
     # XGBoost
-    if kind == "xgb":
-         return XGBRegressor(random_state=42, n_jobs=-1, **params)
+    if kind == "xgboost":
+         return XGBRegressor(random_state=42, n_jobs=-1, **params, early_stopping_rounds=10)
     # SARIMAX - seasonal extension of ARIMA with exogenous factors included
     if kind == "sarimax":
-         return SARIMAX(endog=y_train, exog=X_train, **params) # parameters informed by ACF/PACF seasonal/non-seasonal plots, endogenous and exogenous factors included
+          drop_cols = [c for c in X_train.columns if c.startswith("sales_lag") or c.startswith("sales_roll")]
+          X_train_sarimax = X_train.drop(columns=drop_cols)
+          return SARIMAX(endog=y_train, exog=X_train_sarimax, **params) # parameters informed by ACF/PACF seasonal/non-seasonal plots, endogenous and exogenous factors included
     raise ValueError(f"Unkown kind: {kind}")
 
 
@@ -76,13 +84,15 @@ def grid_search(train, features, target, kind, param_grid):
                model = make_estimator(X.loc[train_mask], y.loc[train_mask], kind, params)
                if kind == "sarimax": # sarimax doesn't use the sklearn interface
                     results = model.fit()
-                    prediction = results.get_forecast(steps=len(X.loc[test_mask]), exog=X.loc[test_mask]).predicted_mean
+                    drop_cols = [c for c in X.columns if c.startswith("sales_lag") or c.startswith("sales_roll")] # sarimax doesnt require these features
+                    X_sarimax = X.drop(columns=drop_cols)
+                    prediction = results.get_forecast(steps=len(X_sarimax.loc[test_mask]), exog=X_sarimax.loc[test_mask]).predicted_mean
 
-               if kind == "xgboost": # early stopping implementation
-                    model.fit(X.loc[train_mask], y.loc[train_mask], early_stopping_rounds=10, eval_metric="mae", eval_set=[(X.loc[test_mask], y.loc[test_mask])], verbose=False)
+               elif kind == "xgboost": # early stopping implementation
+                    model.fit(X.loc[train_mask], y.loc[train_mask], eval_set=[(X.loc[test_mask], y.loc[test_mask])], verbose=False)
                     prediction = model.predict(X.loc[test_mask])
 
-               else:
+               elif kind == "lasso":
                     model.fit(X.loc[train_mask], y.loc[train_mask]) # training data within training window of fold
                     prediction = model.predict(X.loc[test_mask]) # predict on validation window for fold
                fold_scores.append(mae(y.loc[test_mask], prediction)) # computes MAE for current fold

@@ -1,8 +1,5 @@
-import numpy as np, pandas as pd
-from statsmodels.tsa.statespace.sarimax import SARIMAX
-from .model_factory import make_estimator
-from .evaluation import calculate_metrics
-from xgboost import XGBClassifier
+import pandas as pd
+from src.models.model_factory import make_estimator
 '''
 Orchestrates ml model training, tuning, testing, and saving using preprocessed data
 '''
@@ -26,18 +23,21 @@ def train_model(train, test, kind, features, target, params):
 
     if kind == "sarimax": # sarimax doesn't use the sklearn interface
         results = model.fit()
-        preds = results.get_forecast(steps=len(X_test), exog=X_test).predicted_mean
+        drop_cols = [c for c in X_test.columns if c.startswith("sales_lag") or c.startswith("sales_roll")] # sarimax doesnt require these features
+        X_test_sarimax = X_test.drop(columns=drop_cols)
+        preds = results.get_forecast(steps=len(X_test), exog=X_test_sarimax).predicted_mean
 
-    if kind == "xgboost": # early stopping implementation
-        model.fit(X_train, y_train, early_stopping_rounds=10, eval_metric="mae", eval_set=[(X_test, y_test)], verbose=True)
+    elif kind == "xgboost": # early stopping implementation
+        model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=True)
         preds = model.predict(X_test)
 
-    else:
+    elif kind == "lasso":
         model.fit(X_train, y_train) # fitted to all available data up to the current origin
         preds = model.predict(X_test)
     
     oos = test[["date"]].copy() # out of sample dataset containing all unseen data and the corresponding predictions
     oos["Actual data"] = y_test
     oos["Forecasted data"] = preds
+    from src.models.evaluation import calculate_metrics
     metrics = calculate_metrics(y_test, y_train, preds) # calculate metrics for current window predicted
     return oos, metrics, model
