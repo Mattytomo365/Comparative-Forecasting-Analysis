@@ -35,14 +35,14 @@ def add_lags(df):
 
 # adds rolling statistics to summarise information over a specific period of time, giving a broader perspective
 def add_rolls(df):
-    windows = (7, 14, 28) # weekly windows to get weekly patterns
+    windows = (7, 14, 21) # weekly windows to get weekly patterns
     out = df.copy()
 
     past = out["sales"].shift(1) # keeps past only
     for window in windows:
         # calculate mean and standard deviation over corresponding window
-        out[f"sales_rollmean{window}"] = past.rolling(window).mean().fillna("")
-        out[f"sales_rollstd{window}"] = past.rolling(window).std().fillna("")
+        out[f"sales_roll_mean_{window}"] = past.rolling(window).mean()
+        out[f"sales_roll_std_{window}"] = past.rolling(window).std()
     return out
     
 

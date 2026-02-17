@@ -27,7 +27,7 @@ def run(raw_path="data/sales_daily.csv", out_path="data/sales_daily_processed.cs
     schema = fit_onehot_schema(df_clean)
     save_onehot_schema(schema, "registry/onehot_schema.json")
 
-    df_onehot = apply_onehot_schema(df_clean, schema, drop_original=False)
+    df_onehot = apply_onehot_schema(df_clean, schema, drop_original=True)
     print(df_onehot)
 
     # feature engineering
