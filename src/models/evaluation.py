@@ -1,7 +1,7 @@
 import numpy as np, pandas as pd
 from sklearn.metrics import mean_absolute_error, root_mean_squared_error
-from .training import train_model
-from .model_factory import rolling_splits
+from src.models.training import train_model
+from src.models.model_factory import rolling_splits
 from sktime.performance_metrics.forecasting import mean_absolute_scaled_error
 '''
 Model performance evaluation using regression metrics and visualisations
@@ -19,7 +19,7 @@ def calculate_metrics(y_test, y_train, pred):
     return {"MAE": mae, "MASE": mase, "RMSE": rmse}
 
 # implements naive baseline for forecasting performance benchmark
-def naive_forecast(y_train, y_test):
+def naive_forecast(y_train, y_test, kind, test):
     y_train = np.asarray(y_train)
     y_test  = np.asarray(y_test)
 
@@ -27,8 +27,22 @@ def naive_forecast(y_train, y_test):
     preds[0] = y_train[-1] # predict first test point using last train value
     preds[1:] = y_test[:-1] # then predict using previous actual (1-step naive)
 
+    oos_all, metrics_all = [], []
+    oos = test[["date"]].copy() # out of sample dataset containing all unseen data and the corresponding predictions
+    oos["Actual data"] = y_test
+    oos["Forecasted data"] = preds
+    oos["model"] = kind
     metrics = calculate_metrics(y_test, y_train, preds)
-    return metrics, preds
+    metrics["model"] = kind
+    metrics_all.append(metrics)
+    oos = pd.concat(oos_all, ignore_index=True)
+    metrics = pd.DataFrame(metrics_all)
+    oos.name = f"{kind}_predictions_baseline"
+    metrics.name = f"{kind}_metrics_baseline"
+    save_oos(oos, oos.name)
+    save_metrics(metrics, metrics.name)
+
+# generate seasonal naive baselines using sp = 7 (weekly separation)
 
 # orchestrate rolling-origin/expanding-window backtesting using established outer windows
 def backtest(df, kind, features, parameters, target):
@@ -38,16 +52,16 @@ def backtest(df, kind, features, parameters, target):
     df = df.sort_values("date").reset_index(drop=True)
     dates = pd.to_datetime(df["date"])
 
-    for train_mask, test_mask in rolling_splits(dates, 28, 180): # rolling outer windows using suitable minimum training and horizon days
+    for train_mask, test_mask in rolling_splits(dates, 28, 308): # rolling outer windows with fitting on entire training data to start
         train, test = df.loc[train_mask], df.loc[test_mask]
-        oos, metric, model = train_model(train, test, kind, features, target, parameters) # train model
+        oos, metrics, model = train_model(train, test, kind, features, target, parameters) # train model
         oos["model"] = kind
         oos["window"] = window
-        metric["model"] = kind
-        metric["window"] = window
+        metrics["model"] = kind
+        metrics["window"] = window
 
         oos_all.append(oos) # contains all outer window predictions
-        metrics_all.append(metric) # contains metrics for all outer window predictions
+        metrics_all.append(metrics) # contains metrics for all outer window predictions
         window = window + 1
 
     return pd.concat(oos_all, ignore_index=True), pd.DataFrame(metrics_all), model

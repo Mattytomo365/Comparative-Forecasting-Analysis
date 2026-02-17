@@ -1,0 +1,80 @@
+{
+  "kind": "sarimax",
+  "stage": "tuned",
+  "target": "sales",
+  "parameters": {
+    "order": [
+      0,
+      1,
+      1
+    ],
+    "seasonal_order": [
+      1,
+      1,
+      1,
+      7
+    ]
+  },
+  "features": [
+    "weekly_total",
+    "precipitation_sum_(mm)",
+    "temperature_2m_mean_(\u00b0c)",
+    "wind_speed_10m_max_(km/h)",
+    "internal_events__bingo",
+    "internal_events__dj",
+    "internal_events__football_screening",
+    "internal_events__karaoke",
+    "internal_events__promotions",
+    "internal_events__quiz",
+    "internal_events__student_social_night",
+    "external_events__edge_hill_freshers_week",
+    "external_events__grand_national",
+    "external_events__ormskirk_christmas_lights_switch_on",
+    "external_events__ormskirk_festival_summer_bank_holiday",
+    "external_events__ormskirk_gingerbread_festival",
+    "external_events__ormskirk_medieval_festival_coronation_park",
+    "holiday__bonfire_night",
+    "holiday__boxing_day",
+    "holiday__christmas_day",
+    "holiday__christmas_eve",
+    "holiday__early_may_bank_holiday",
+    "holiday__easter_monday",
+    "holiday__easter_sunday",
+    "holiday__father_s_day",
+    "holiday__good_friday",
+    "holiday__halloween",
+    "holiday__mother_s_day",
+    "holiday__new_year_s_day",
+    "holiday__new_year_s_eve",
+    "holiday__spring_bank_holiday",
+    "holiday__st_george_s_day",
+    "holiday__st_patrick_s_day",
+    "holiday__summer_bank_holiday",
+    "holiday__valentine_s_day",
+    "dow_sin",
+    "dow_cos",
+    "doy_sin",
+    "doy_cos",
+    "doy_sin_2",
+    "doy_cos_2",
+    "sales_lag_1",
+    "sales_lag_7",
+    "sales_lag_14",
+    "sales_lag_21",
+    "sales_roll_mean_7",
+    "sales_roll_std_7",
+    "sales_roll_mean_14",
+    "sales_roll_std_14",
+    "sales_roll_mean_21",
+    "sales_roll_std_21"
+  ],
+  "artifacts": {
+    "oos": {
+      "path": "results/sarimax_predictions_tuned.csv"
+    },
+    "metrics": {
+      "path": "results/sarimax_metrics_tuned.csv"
+    }
+  },
+  "created_at": "20260217-211108"
+}
