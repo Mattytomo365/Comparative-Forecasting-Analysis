@@ -25,7 +25,7 @@ def train_model(train, test, kind, features, target, params):
         results = model.fit()
         drop_cols = [c for c in X_test.columns if c.startswith("sales_lag") or c.startswith("sales_roll")] # sarimax doesnt require these features
         X_test_sarimax = X_test.drop(columns=drop_cols)
-        preds = results.get_forecast(steps=len(X_test), exog=X_test_sarimax).predicted_mean
+        preds = results.get_forecast(steps=len(X_test_sarimax), exog=X_test_sarimax).predicted_mean
 
     elif kind == "xgboost": # early stopping implementation
         model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=True)

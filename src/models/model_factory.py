@@ -20,19 +20,19 @@ def feature_cols(df):
 def mae(test, pred):
      return float(mean_absolute_error(test, pred))
 
-# creates a machine learning model estimator used to fit onto training data based on the kind of model provided
+# creates a machine learning model constructors used to fit onto training data based on the kind of model provided
 def make_estimator(X_train, y_train, kind, params):
     # Lasso
     if kind == "lasso":
          lasso_pipe = Pipeline([ # pipelines used with linear models to fit StandardScaler (scales data) before fitting the estimator
                ("imputer", SimpleImputer(strategy="median", add_indicator=True)), # lasso cant compute NaNs
                ("scaler", StandardScaler()),  # sets higher penality strength for more bias and less variance
-               ("model", Lasso(**params))
+               ("model", Lasso(max_iter=2000, selection="random", random_state=42, **params))
           ])
          return lasso_pipe
     # XGBoost
     if kind == "xgboost":
-         return XGBRegressor(random_state=42, n_jobs=-1, **params, early_stopping_rounds=10)
+         return XGBRegressor(n_estimators=4000, random_state=42, n_jobs=-1, **params, early_stopping_rounds=10)
     # SARIMAX - seasonal extension of ARIMA with exogenous factors included
     if kind == "sarimax":
           drop_cols = [c for c in X_train.columns if c.startswith("sales_lag") or c.startswith("sales_roll")]
@@ -48,9 +48,8 @@ def rolling_splits(d, horizon_days, min_train_days):
      # first origin with enough history
      first_train_end = d.iloc[0] + pd.Timedelta(days=min_train_days - 1) # the last day of the initial traning window
      first_test_start = first_train_end + pd.Timedelta(days=1) # first test window starts the next day after initial training window
-     first_test_end = first_test_start + pd.Timedelta(days=horizon_days - 1) # first test window ends after all horizon days have passed
 
-     span_days = (last_date - first_test_end).days # excludes the initial window to ensure it always has sufficient data
+     span_days = (last_date - first_test_start).days # excludes the initial window to ensure it always has sufficient data
 
      if span_days < 0:
           raise ValueError("Not enough data for min_train_days + horizon_days")
@@ -80,7 +79,7 @@ def grid_search(train, features, target, kind, param_grid):
 
      for params in ParameterGrid(param_grid): # iterates over each hyper-parameter combination manually
           fold_scores = []
-          for train_mask, test_mask in rolling_splits(dates, 7, 28): # rolling windows across training data only using suitable minimum training and horizon days
+          for train_mask, test_mask in rolling_splits(dates, 28, 197): # rolling windows across training data only using suitable minimum training and horizon days
                model = make_estimator(X.loc[train_mask], y.loc[train_mask], kind, params)
                if kind == "sarimax": # sarimax doesn't use the sklearn interface
                     results = model.fit()
