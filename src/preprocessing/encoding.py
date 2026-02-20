@@ -7,62 +7,70 @@ from pandas.api.types import CategoricalDtype
 Multi-label and singular one-hot encoding for string based fields
 '''
 
-# standardises category names, allowing for safe onehot column suffixes
-def standardise_categories(c):
+
+def standardise_categories(c: str) -> str:
+    '''
+    Standardises category names, allowing for safe onehot column suffixes
+    '''
     c = str(c).strip().lower()
     c = re.sub(r"[^a-z0-9]+", "_", c).strip("_")
     return c or "unknown"
 
-# adds and fills one-hot cols for a specified col with a fixed category list
-def onehot_single(df, col, categories:list[str]): # passes in categories from fitted schema
-    col_norm = df[col].fillna("unknown").map(standardise_categories) # replaces NaN and standardises categories to match schema
-    cat_dtype = CategoricalDtype(categories=categories, ordered=False) # allows for casts to categorial dtype to filter out categories not in schema
-    dummies = pd.get_dummies(col_norm.astype(cat_dtype), prefix=col, prefix_sep="__", dtype="int32") # onehot matrix (0/1 values)
+
+def onehot_single(df: pd.DataFrame, 
+                  col: str, 
+                  categories: list[str]) -> pd.Series:
+    '''
+    Adds and fills one-hot cols for a specified col with a fixed category list
+    '''
+    col_norm = df[col].fillna("unknown").map(standardise_categories) 
+    cat_dtype = CategoricalDtype(categories=categories, ordered=False) # cast to categorial dtype to filter out categories not in schema
+    dummies = pd.get_dummies(col_norm.astype(cat_dtype), prefix=col, prefix_sep="__", dtype="int32") # onehot matrix
     expected_cols = [f"{col}__{c}" for c in categories]
-    dummies = dummies.reindex(columns=expected_cols, fill_value=0) # adds missing onehots filled with 0 from precomputed list
+    dummies = dummies.reindex(columns=expected_cols, fill_value=0) # fallback for missing dummies
     return dummies
 
-# multi-label onehot columns from separated category tags
-def onehot_multi(df, col, categories:list[str], sep=";"):
+
+def onehot_multi(df: pd.DataFrame, 
+                 col: str, 
+                 categories:list[str], sep=",") -> pd.Series:
+    '''
+    Multi-label onehot columns from separated category tags
+    '''
     out = pd.DataFrame(index=df.index)
-    tags = ( # series of sets containing individual category tags present for each row
+    tags = ( 
         df[col].apply(lambda val: {standardise_categories(tag) for tag in val.split(sep) if tag.strip()})
     )
-    # checks categories against each tag set in tags
     for c in categories:
-        out[f"{col}__{c}"] = tags.apply(lambda set: int(c in set)).astype("int32") # convert to 0/1 matrix
+        out[f"{col}__{c}"] = tags.apply(lambda set: int(c in set)).astype("int32")
     return out
 
-# discover categories in historical dataset, returns schema to apply onehot
-def fit_onehot_schema(df, weather_col="weather", internal_col="internal_events", external_col="external_events", holiday_col="holiday", dow_col="day_of_week"):
-    schema = {}
 
-    # weather / internal events (single)
-    for col, key in [(weather_col, "weather"), (internal_col, "internal_events")]:
-        if col in df.columns:
-            s = df[col]
-            categories = s[s.ne("")].unique().tolist() # determines unqiue categories listed not empty
-            categories = {standardise_categories(c) for c in categories}
-            schema[f"{key}"] = sorted(categories) # stable order for consistency
+def fit_onehot_schema(df: pd.DataFrame, 
+                      internal_col="internal_events", 
+                      external_col="external_events", 
+                      holiday_col="holiday") -> pd.DataFrame:
+    '''
+    Discover categories in historical dataset, returns schema to apply onehot
+    '''
+    schema = {}
     
-    # external events/ holiday (multi-label)
-    for col, key in [(external_col, "external_events"), (holiday_col, "holiday")]:
+    # internal events/ external events/ holiday (multi-label)
+    for col, key in [(external_col, "external_events"), (holiday_col, "holiday"), (internal_col, "internal_events")]:
         if col in df.columns:
-            categories = set() # using set removes duplicates
+            categories = set()
             for val in df[col]:
-                for category in [tag.strip() for tag in val.split(";") if tag.strip()]: # separates into individual categories
+                for category in [tag.strip() for tag in val.split(",") if tag.strip()]: # separates into individual categories
                     categories.add(standardise_categories(category))
             schema[f"{key}"] = sorted(categories)  
     return schema
 
-# apply fitted schema to onehot methods
-def apply_onehot_schema(df, schema, drop_original=False):
-    onehot_cols = [df.reset_index(drop=True)] # what does this mean?
 
-    # weather
-    if "weather" in schema and "weather" in df.columns:
-        onehot_w = onehot_single(df, "weather", schema["weather"])
-        onehot_cols.append(onehot_w)
+def apply_onehot_schema(df: pd.DataFrame, schema: pd.Series, drop_original=False) -> pd.DataFrame:
+    '''
+    Apply fitted schema to onehot methods
+    '''
+    onehot_cols = [df.reset_index(drop=True)]
 
     # internal events
     if "internal_events" in schema and "internal_events" in df.columns:
@@ -82,14 +90,20 @@ def apply_onehot_schema(df, schema, drop_original=False):
     out = pd.concat(onehot_cols, axis=1)
 
     if drop_original:
-        out = out.drop(columns=[col for col in ["weather","internal_events","external_events","holiday","day_of_week"] if col in out ], errors="ignore")
+        out = out.drop(columns=[col for col in ["internal_events","external_events","holiday"] if col in out.columns], errors="ignore")
     
     return out
 
-# saves onehot schema to json for reusability and stability between training and serving models
-def save_onehot_schema(schema, path):
+
+def save_onehot_schema(schema: pd.Series, path: str) -> Path:
+    '''
+    Saves onehot schema to json for reusability and stability between training and serving models
+    '''
     Path(path).write_text(json.dumps(schema, indent=2))
 
-# reads and returns saved onehot schema from json for additional encoding
-def load_onehot_schema(path):
+
+def load_onehot_schema(path: Path) -> json:
+    '''
+    Reads and returns saved onehot schema from json for additional encoding
+    '''
     return json.loads(Path(path).read_text())

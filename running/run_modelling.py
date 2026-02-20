@@ -1,17 +1,17 @@
-from src.models.model_factory import grid_search, feature_cols
+from models.tuning import grid_search, feature_cols
 from src.models.training import time_split
 from src.models.evaluation import backtest, save_metrics, save_oos
 from src.dataset.load_save import load_csv
-from src.models.model_registry import save_manifest
+from models.registry import save_manifest
 
 '''
-Module for model tuning and training functions
+Module for model tuning, testing, and training functions
 '''
 
 def run(data_path="data/sales_daily_processed.csv", target="sales"):
     df = load_csv(data_path)
     features = feature_cols(df)
-    train, test = time_split(df) # simple holdout splitter
+    train, holdout = time_split(df) # simple holdout splitter
 
     # train on suitable default parameter combinations first to give performance baselines
     for kind, default_params in[
