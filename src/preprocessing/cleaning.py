@@ -34,15 +34,6 @@ def standardise_strings(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def parse_dates(df: pd.DataFrame) -> pd.DataFrame:
-    '''
-    Parsing dates to datetime objects
-    '''
-    out = df.copy()
-    out["date"] = pd.to_datetime(out["date"].astype(str), dayfirst=True, errors="raise")
-    return out
-
-
 def coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
     '''
     Ensures necessary columns are numerical in type and erronous data is surfaced
@@ -69,6 +60,7 @@ def handle_missing(df: pd.DataFrame) -> pd.DataFrame:
 
     # set 0 for missing sales on holidays due to closures
     out.loc[m_sales & m_holiday, "sales"] = 0
+    out.loc[m_sales & m_holiday, "closed"] = 1 # explainability
 
     med_global = (out.loc[~m_sales, "sales"]).median() # fallback
     med_dow = ( # dow based
@@ -120,7 +112,6 @@ def clean_data(df: pd.DataFrame):
     df = (df
             .pipe(normalise_headers)
             .pipe(standardise_strings)
-            .pipe(parse_dates)
             .pipe(coerce_numeric))
     
     df, report = handle_missing(df)

@@ -2,7 +2,7 @@ import numpy as np, pandas as pd
 from sklearn.metrics import mean_absolute_error, root_mean_squared_error
 from typing import Mapping, Any
 from src.models.training import train_model
-from models.tuning import rolling_splits
+from src.models.tuning import rolling_splits
 from sktime.performance_metrics.forecasting import mean_absolute_scaled_error
 '''
 Model performance evaluation using regression metrics and visualisations
@@ -27,7 +27,7 @@ def calculate_metrics(y_test: pd.Series,
 def naive_forecast(y_train: pd.Series, 
                    y_test: pd.Series, 
                    kind: str, 
-                   test: pd.DataFrame):
+                   test: pd.DataFrame) -> None:
     '''
     Implements naive baseline for forecasting performance benchmark
     '''
@@ -99,6 +99,7 @@ def save_metrics(metrics: pd.DataFrame, name: str) -> str:
     path = f"results/{name}.csv"
     metrics.to_csv(path, index=False)
     return path
+
 
 
 

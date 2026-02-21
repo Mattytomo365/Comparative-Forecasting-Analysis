@@ -68,7 +68,7 @@ def weekday_avg(df: pd.DataFrame,
     return pd.DataFrame(day_m[["dow", "value"]])
 
 
-def weekday_avg_plot(weekday_averages: list[pd.DataFrame]):
+def weekday_avg_plot(weekday_averages: list[pd.DataFrame]) -> None:
     '''
     Visualisation of weekday averages across all months
     '''
@@ -88,14 +88,14 @@ def weekday_avg_plot(weekday_averages: list[pd.DataFrame]):
 
 
 
-def sales_distribution(df: pd.DataFrame, name: str):
+def sales_distribution(df: pd.DataFrame, name: str) -> None:
     '''
     Generates a box plot to visualise sales distribution
     '''
     pass
 
 
-def monthly_labels(ax):
+def monthly_labels(ax) -> None:
     '''
     Helper function to improve visibility of values on x-axis
     '''
@@ -110,7 +110,7 @@ def fourier_basis_wave(df: pd.DataFrame,
                        cos_col: str, 
                        k: int, 
                        title: str, 
-                       name: str):
+                       name: str) -> None:
     '''
     Plot basis waves at varying harmonic levels visualising fourier features against time
     '''
@@ -134,7 +134,7 @@ def fourier_basis_wave(df: pd.DataFrame,
 def seasonal_curve(df: pd.DataFrame, 
                    target: str, 
                    k: int, 
-                   title: str):
+                   title: str) -> None:
     '''
     Plot linear combination of baseline waves, visualises what linear models perform on yearly fourier features to understand seasonal shape
     '''
@@ -175,7 +175,7 @@ def fourier_unit_circle(df: pd.DataFrame,
                         cos_col: str, 
                         sin_col: str, 
                         title: str, 
-                        name: str):
+                        name: str) -> None:
     '''
     Generates unit-circle plots of fourier features, helping visualise the circular pattern
     '''
@@ -195,7 +195,7 @@ def acf_plots(df: pd.DataFrame,
               col: str, 
               diff: int,
               name: str, 
-              title: str):
+              title: str) -> None:
     '''
     Generates autocorrelation plots
     '''
@@ -217,7 +217,7 @@ def acf_plots(df: pd.DataFrame,
     save_figure(fig, name)
 
 
-def decomposition_plot(df: pd.DataFrame, name: str):
+def decomposition_plot(df: pd.DataFrame, name: str) -> None:
     '''
     Performs time-series seasonal decomposition
     '''
@@ -228,7 +228,7 @@ def decomposition_plot(df: pd.DataFrame, name: str):
     save_figure(fig, name)
 
 
-def perform_adf(df: pd.DataFrame):
+def perform_adf(df: pd.DataFrame) -> None:
     '''
     Performs augmented dickey-fuller test
     '''
