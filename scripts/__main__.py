@@ -1,6 +1,6 @@
 import argparse
 import sys
-from . import report, run_comparison, run_data_analysis, run_experiments, run_modelling, run_preprocessing
+from . import run_comparison, run_data_analysis, run_experiments, run_modelling, run_preprocessing
 '''
 A clean entry point to the 'running' package, orchestrating all individual modules/scripts within.
 Works in terminal, CI, and allows subcommands to be built cleanly
