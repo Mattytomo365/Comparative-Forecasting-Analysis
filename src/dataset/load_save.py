@@ -1,11 +1,12 @@
-import pandas as pd, hashlib, datetime as dt
+import pandas as pd
+from typing import Any
 
 '''
 Loading raw data & saving to csv
 '''
 
-def load_csv(path: str):
-    return pd.read_csv(path, parse_dates=["date"], dayfirst=True)
+def load_csv(path: str) -> Any:
+    return pd.read_csv(path, parse_dates=["date"])
 
-def save_csv(df, path:str):
-    df = save_csv(path, index=False)
+def load_metrics(path: str) -> Any:
+    return pd.read_csv(path)

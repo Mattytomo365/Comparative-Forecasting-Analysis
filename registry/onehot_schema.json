@@ -1,0 +1,39 @@
+{
+  "external_events": [
+    "edge_hill_freshers_week",
+    "grand_national",
+    "ormskirk_christmas_lights_switch_on",
+    "ormskirk_festival_summer_bank_holiday",
+    "ormskirk_gingerbread_festival",
+    "ormskirk_medieval_festival_coronation_park"
+  ],
+  "holiday": [
+    "bonfire_night",
+    "boxing_day",
+    "christmas_day",
+    "christmas_eve",
+    "early_may_bank_holiday",
+    "easter_monday",
+    "easter_sunday",
+    "father_s_day",
+    "good_friday",
+    "halloween",
+    "mother_s_day",
+    "new_year_s_day",
+    "new_year_s_eve",
+    "spring_bank_holiday",
+    "st_george_s_day",
+    "st_patrick_s_day",
+    "summer_bank_holiday",
+    "valentine_s_day"
+  ],
+  "internal_events": [
+    "bingo",
+    "dj",
+    "football_screening",
+    "karaoke",
+    "promotions",
+    "quiz",
+    "student_social_night"
+  ]
+}

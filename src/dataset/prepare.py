@@ -1,10 +1,11 @@
 from .load_save import load_csv
+import pandas as pd
 '''
 Joins exogenous factor datasets to sales datasets by date
 Full, complete and well-explained data
 '''
 
-def merge_data(sales):
+def merge_data(sales: pd.DataFrame) -> pd.DataFrame:
     weather = load_csv('./data/weather_daily.csv')
     holidays = load_csv('./data/holidays.csv')
     events = load_csv('./data/events.csv')

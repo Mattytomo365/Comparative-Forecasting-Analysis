@@ -1,23 +1,24 @@
-from src.models.model_factory import grid_search, feature_cols
-from src.models.training import time_split
+from src.models.tuning import grid_search, feature_cols
 from src.models.evaluation import backtest, save_metrics, save_oos
 from src.dataset.load_save import load_csv
-from src.models.model_registry import save_manifest
+from src.models.registry import save_manifest
+from src.models.training import time_split
 
 '''
-Module for model tuning and training functions
+Module for model tuning, testing, and training functions
 '''
 
 def run(data_path="data/sales_daily_processed.csv", target="sales"):
     df = load_csv(data_path)
     features = feature_cols(df)
-    train, test = time_split(df) # simple holdout splitter
+    train_df, holdout_df = time_split(df) # simple holdout splitter
+    
 
     # train on suitable default parameter combinations first to give performance baselines
     for kind, default_params in[
-        ("lasso", {"alpha": 1.0}), # lasso
-        ("sarima", {"order": (0, 1, 1), "seasonal_order": (0, 1, 1, 7)}), # SARIMA
-        ("xgb", {"n_estimators": 400, "max_depth": 6, "learning_rate": 0.05}) # XGBoost
+        ("lasso", {"alpha": 1.0}), # Lasso
+        ("sarimax", {"order": (0, 1, 1), "seasonal_order": (0, 1, 1, 7)}), # SARIMA
+        ("xgboost", {"max_depth": 4, "learning_rate": 0.05}) # XGBoost
     ]:
         oos, metrics, model = backtest(df, kind, features, default_params, target)
         oos.name = f"{kind}_predictions_baseline"
@@ -29,27 +30,27 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
     # define param grids for each model type
     Grids = {
         "lasso": { # Lasso
-            "alpha": [0.1, 0.3, 1.0, 3.0, 10.0], # pipeline returns StandardScaler
+            "alpha": [0.01, 0.03, 0.1, 0.3, 1.0, 3.0, 10.0], # controls penalty strength
         },
 
-        "sarima": { # SARIMA
-            "order": [(1, 1, 1), (2, 1, 1), (1, 1, 2)],
-            "seasonal_order": [(0,1,1,7), (1,1,0,7), (1,1,1,7)],
+        "sarimax": { # SARIMAX
+            "order": [(0, 1, 1), (1, 1, 1)],
+            "seasonal_order": [(0,1,1,7), (1,1,1,7)],
         },
 
-        "xgb": { # XGBoost
-            "n_estimators": [600, 900],
-            "learning_rate": [0.03, 0.05, 0.1],
-            "max_depth": [4, 6],
+        "xgboost": { # XGBoost
+            "learning_rate": [0.03, 0.08],
+            "max_depth": [3, 5],
+            "min_child_weight": [1, 10],
             "subsample": [0.8, 1.0],
             "colsample_bytree": [0.8, 1.0],
-            "reg_lambda": [1.0, 3.0, 10.0],
+            "reg_lambda": [1.0, 10.0],
         },
     }
 
     for kind, grid in Grids.items():
         # tune on train only
-        best = grid_search(train, features, target, kind, param_grid=grid)
+        best = grid_search(train_df, features, target, kind, param_grid=grid)
         print("Best CV: ", best)
 
         # refit on train with best hyper-parameters
@@ -64,5 +65,5 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
 
 
 
-if __name__ == "__main__": # used for running script outside of vscode, add argparsing to complete configuration
+if __name__ == "__main__":
     run()

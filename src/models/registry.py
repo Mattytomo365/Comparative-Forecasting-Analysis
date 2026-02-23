@@ -1,22 +1,33 @@
 from pathlib import Path
+from typing import Mapping, Any
 import json, time
 '''
 Model manifest orchestration - saving, reading, validation
 '''
 # custom exceptions for domain-specific signals
 class RegistryError(Exception): pass # base exception for registry module
-class ModelNotFound(RegistryError): pass # inherits from RegistryError
+class ModelNotFound(RegistryError): pass # RegistryError child
 class ManifestError(RegistryError): pass
 
 registry_dir = Path("models")
 
-# Writes model manifest JSON (Human-readable model metadata)
-def save_manifest(kind, stage, target, features, parameters, oos_path, metrics_path, model): 
+
+def save_manifest(kind: str, 
+                  stage: str, 
+                  target: str, 
+                  features: list[str], 
+                  params: Mapping[str, Any], 
+                  oos_path: Path, 
+                  metrics_path: Path, 
+                  model: Any) -> None: 
+    '''
+    Writes model manifest JSON (Human-readable model metadata)
+    '''
     manifest = {
         "kind": kind,
         "stage": stage, # baseline or tuned
         "target": target,
-        "parameters": parameters,
+        "parameters": params,
         "features": features,
         "artifacts":{
             "oos": {"path": str(oos_path)},
@@ -26,11 +37,14 @@ def save_manifest(kind, stage, target, features, parameters, oos_path, metrics_p
     }
     with open((f"registry/{kind}_{stage}.manifest.json"), "w") as f:
         json.dump(manifest, f, indent=2)
-    return manifest
 
-# Reads manifest JSON file - used for displaying model information to user
-def read_manifest(kind, stage):
-    path = f"registry/{kind}_{stage}.manifest.json" # joining path segments
+
+
+def read_manifest(kind: str, stage: str) -> dict[str, Any]:
+    '''
+    Reads manifest JSON file - used for displaying model information to user
+    '''
+    path = f"registry/{kind}_{stage}.manifest.json"
 
     if not path.exists():
         raise ModelNotFound(f"Manifest not found")
@@ -39,6 +53,3 @@ def read_manifest(kind, stage):
     except json.JSONDecodeError as e: # if deserialised data is invalid
         raise ManifestError(f"Invalid JSON in {path}: {e}") from e
     return data
-
-def list_models():
-    return
