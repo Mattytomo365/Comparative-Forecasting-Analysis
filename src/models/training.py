@@ -79,8 +79,8 @@ def train_model(train: pd.DataFrame,
         preds = model.predict(X_test)
     
     oos = test[["date"]].copy() # out-of-sample predictions
-    oos["Actual data"] = y_test
-    oos["Forecasted data"] = preds
+    oos["actual data"] = y_test
+    oos["forecasted data"] = preds
     from src.models.evaluation import calculate_metrics
     metrics = calculate_metrics(y_test, y_train, preds) # calculate metrics for current window predicted
     return oos, metrics, model

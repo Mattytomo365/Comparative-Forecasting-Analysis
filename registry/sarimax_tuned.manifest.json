@@ -4,12 +4,12 @@
   "target": "sales",
   "parameters": {
     "order": [
-      0,
+      1,
       1,
       1
     ],
     "seasonal_order": [
-      1,
+      0,
       1,
       1,
       7
@@ -20,6 +20,7 @@
     "precipitation_sum_(mm)",
     "temperature_2m_mean_(\u00b0c)",
     "wind_speed_10m_max_(km/h)",
+    "closed",
     "internal_events__bingo",
     "internal_events__dj",
     "internal_events__football_screening",
@@ -76,5 +77,5 @@
       "path": "results/sarimax_metrics_tuned.csv"
     }
   },
-  "created_at": "20260217-211108"
+  "created_at": "20260221-200512"
 }

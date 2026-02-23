@@ -4,17 +4,18 @@
   "target": "sales",
   "parameters": {
     "colsample_bytree": 1.0,
-    "learning_rate": 0.03,
+    "learning_rate": 0.08,
     "max_depth": 5,
     "min_child_weight": 10,
     "reg_lambda": 1.0,
-    "subsample": 0.8
+    "subsample": 1.0
   },
   "features": [
     "weekly_total",
     "precipitation_sum_(mm)",
     "temperature_2m_mean_(\u00b0c)",
     "wind_speed_10m_max_(km/h)",
+    "closed",
     "internal_events__bingo",
     "internal_events__dj",
     "internal_events__football_screening",
@@ -71,5 +72,5 @@
       "path": "results/xgboost_metrics_tuned.csv"
     }
   },
-  "created_at": "20260217-211332"
+  "created_at": "20260221-200737"
 }

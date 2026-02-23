@@ -1,8 +1,8 @@
-from models.tuning import grid_search, feature_cols
-from src.models.training import time_split
+from src.models.tuning import grid_search, feature_cols
 from src.models.evaluation import backtest, save_metrics, save_oos
 from src.dataset.load_save import load_csv
-from models.registry import save_manifest
+from src.models.registry import save_manifest
+from src.models.training import time_split
 
 '''
 Module for model tuning, testing, and training functions
@@ -11,7 +11,8 @@ Module for model tuning, testing, and training functions
 def run(data_path="data/sales_daily_processed.csv", target="sales"):
     df = load_csv(data_path)
     features = feature_cols(df)
-    train, holdout = time_split(df) # simple holdout splitter
+    train_df, holdout_df = time_split(df) # simple holdout splitter
+    
 
     # train on suitable default parameter combinations first to give performance baselines
     for kind, default_params in[
@@ -49,7 +50,7 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
 
     for kind, grid in Grids.items():
         # tune on train only
-        best = grid_search(train, features, target, kind, param_grid=grid)
+        best = grid_search(train_df, features, target, kind, param_grid=grid)
         print("Best CV: ", best)
 
         # refit on train with best hyper-parameters
@@ -64,5 +65,5 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
 
 
 
-if __name__ == "__main__": # used for running script outside of vscode, add argparsing to complete configuration
+if __name__ == "__main__":
     run()

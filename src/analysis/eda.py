@@ -240,7 +240,7 @@ def perform_adf(df: pd.DataFrame) -> None:
 
 def plot_all(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     '''
-    Centralised function
+    Centralises execution of all EDA diagnostics
     '''
     # fourier baseline waves
     fourier_basis_wave(df, "dow_sin", "dow_cos", 1, "Weekly Fourier basis", "fourier_basis_monthly")
