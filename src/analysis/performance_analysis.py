@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from typing import Any
@@ -49,18 +50,31 @@ def metrics_plots(metrics_list: pd.DataFrame, models: list[str], stage: str) -> 
     '''
     Plot baseline and tuned evaluation metrics against eachother for each model
     '''
-    fig, ax = plt.subplots()
+    metric_cols = ["MAE", "RMSE", "MASE"]
 
-    for metrics, model in zip(metrics_list, models):
-        metric_1 = metrics[metrics["window"] == 1]
-        metric_2 = metrics[metrics["window"] == 2]
-        ax.bar(metric_1["MAE"], metric_1["RMSE"], metric_1["MASE"], label=f"window 1 {model} ({stage})")
-        ax.bar(metric_2["MAE"], metric_2["RMSE"], metric_2["MASE"], label=f"window 2 {model} ({stage})")
+    if len(metrics_list) != len(models):
+        raise ValueError("metrics_list and models must have same length")
+    
+    x = np.arange(len(models)) # 2 folds per metric
+    width = 0.25
+    
+    fig, axes = plt.subplots(1, 3, figsize=(14, 4))
 
-    ax.set_title(f"Metrics for all {stage} models across all folds")
-    ax.set_ylabel("value")
-    ax.set_xlabel("metric, stage, window")
-    ax.legend()
+    for ax, metric in zip(axes, metric_cols):
+        fold_1 = [df.loc[df["window"] == 1, metric].iloc[0] for df in metrics_list]
+        fold_2 = [df.loc[df["window"] == 2, metric].iloc[0] for df in metrics_list]
+        ax.bar(x - width / 2, fold_1, width, label="fold 1")
+        ax.bar(x + width / 2, fold_2, width, label="fold 2")
+
+        ax.set_title(metric)
+        ax.set_ylabel("value")
+        ax.set_xticks(x)
+        ax.set_xticklabels(models)
+        ax.set_xlabel("model")
+        ax.legend()
+
+    fig.suptitle(f"Metrics for all {stage} models across both folds")
+    fig.tight_layout()
     save_figure(fig, f"metrics_plot_{stage}")
 
 def plot_all() -> None:
