@@ -7,7 +7,7 @@ import numpy as np, pandas as pd
 '''
 Defines rolling origin protocol and cross-validation implementation
 '''
-EXCLUDE = {"date","sales","covers","weather","internal_events","external_events","holiday"}
+EXCLUDE = {"date","sales","internal_events","external_events","holiday"}
 
 
 def feature_cols(df: pd.DataFrame) -> list[str]:
@@ -77,7 +77,9 @@ def grid_search(train: pd.DataFrame,
           fold_scores = []
           # cycle through folds
           # set suitable min_training_days and horizon_days
-          for train_mask, test_mask in rolling_splits(dates, 28, 197): 
+          horizon_days = 28
+          min_training_days = 197
+          for train_mask, test_mask in rolling_splits(dates, horizon_days, min_training_days): 
                model = make_estimator(X.loc[train_mask], y.loc[train_mask], kind, params)
                if kind == "sarimax":
                     results = model.fit()

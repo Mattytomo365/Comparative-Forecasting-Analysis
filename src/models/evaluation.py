@@ -24,41 +24,41 @@ def calculate_metrics(y_test: pd.Series,
     return {"MAE": mae, "MASE": mase, "RMSE": rmse}
 
 
-def naive_forecast(y_train: pd.Series, 
-                   y_test: pd.Series, 
-                   kind: str, 
-                   test: pd.DataFrame) -> None:
-    '''
-    Implements naive baseline for forecasting performance benchmark
-    '''
-    y_train = np.asarray(y_train)
-    y_test  = np.asarray(y_test)
+# def naive_forecast(y_train: pd.Series, 
+#                    y_test: pd.Series, 
+#                    kind: str, 
+#                    test: pd.DataFrame) -> None:
+#     '''
+#     Implements naive baseline for forecasting performance benchmark
+#     '''
+#     y_train = np.asarray(y_train)
+#     y_test  = np.asarray(y_test)
 
-    preds = np.empty_like(y_test, dtype=float)
-    preds[0] = y_train[-1] # predict first test point using last train value
-    preds[1:] = y_test[:-1] # then predict using previous actual (1-step naive)
+#     preds = np.empty_like(y_test, dtype=float)
+#     preds[0] = y_train[-1] # predict first test point using last train value
+#     preds[1:] = y_test[:-1] # then predict using previous actual (1-step naive)
 
-    oos_all, metrics_all = [], []
-    oos = test[["date"]].copy()
-    oos["Actual data"] = y_test
-    oos["Forecasted data"] = preds
-    oos["model"] = kind
-    metrics = calculate_metrics(y_test, y_train, preds)
-    metrics["model"] = kind
-    metrics_all.append(metrics)
-    oos = pd.concat(oos_all, ignore_index=True)
-    metrics = pd.DataFrame(metrics_all)
-    oos.name = f"{kind}_predictions_baseline"
-    metrics.name = f"{kind}_metrics_baseline"
-    save_oos(oos, oos.name)
-    save_metrics(metrics, metrics.name)
+#     oos_all, metrics_all = [], []
+#     oos = test[["date"]].copy()
+#     oos["Actual data"] = y_test
+#     oos["Forecasted data"] = preds
+#     oos["model"] = kind
+#     metrics = calculate_metrics(y_test, y_train, preds)
+#     metrics["model"] = kind
+#     metrics_all.append(metrics)
+#     oos = pd.concat(oos_all, ignore_index=True)
+#     metrics = pd.DataFrame(metrics_all)
+#     oos.name = f"{kind}_predictions_baseline"
+#     metrics.name = f"{kind}_metrics_baseline"
+#     save_oos(oos, oos.name)
+#     save_metrics(metrics, metrics.name)
 
 
 def backtest(df: pd.DataFrame, 
              kind: str, 
              features: list[str], 
              params: Mapping[str, Any], 
-             target: str) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, float]]:
+             target: str) -> tuple[pd.DataFrame, pd.DataFrame, Any]:
     '''
     Orchestrate rolling-origin/expanding-window backtesting using established outer windows
     '''
@@ -67,8 +67,10 @@ def backtest(df: pd.DataFrame,
 
     df = df.sort_values("date").reset_index(drop=True)
     dates = pd.to_datetime(df["date"])
+    horizon_days = 28
+    min_training_days = 308
 
-    for train_mask, test_mask in rolling_splits(dates, 28, 308): # rolling out-of-sample windows
+    for train_mask, test_mask in rolling_splits(dates, horizon_days, min_training_days): # rolling out-of-sample windows
         train, test = df.loc[train_mask], df.loc[test_mask]
         oos, metrics, model = train_model(train, test, kind, features, target, params)
         oos["model"] = kind
