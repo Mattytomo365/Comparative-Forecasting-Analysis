@@ -11,7 +11,6 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
 
 # use data from all model results datasets (post and prior tuning) with included predictions, average metrics if necessary?
 # produce ranked table
-# produce residual graph with all models on
 # error distribution comparison
 # rolling error plots
 

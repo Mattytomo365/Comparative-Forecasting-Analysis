@@ -27,6 +27,7 @@ def plot_residuals(oos_baseline: pd.DataFrame, oos_tuned: pd.DataFrame, model: s
     ax.set_xlabel("date")
     ax.legend()
     daily_labels(ax)
+    fig.tight_layout(pad=1.2)
     save_figure(fig, f"residual_{model}")
 
 def forecast_plot(oos_list: list[pd.DataFrame], models: list[str], stage: str) -> None:
@@ -44,9 +45,10 @@ def forecast_plot(oos_list: list[pd.DataFrame], models: list[str], stage: str) -
     ax.legend()
     ax.set_title(f"forecast vs. actual data ({stage})")
     daily_labels(ax)
+    fig.tight_layout(pad=1.2)
     save_figure(fig, f"forecast_vs_actual_{stage}")
 
-def metrics_plots(metrics_list: pd.DataFrame, models: list[str], stage: str) -> None:
+def metrics_plots(metrics_list: list[pd.DataFrame], models: list[str], stage: str) -> None:
     '''
     Plot baseline and tuned evaluation metrics against eachother for each model
     '''
@@ -77,6 +79,27 @@ def metrics_plots(metrics_list: pd.DataFrame, models: list[str], stage: str) -> 
     fig.tight_layout()
     save_figure(fig, f"metrics_plot_{stage}")
 
+# Summary table of rankings
+# Error distribution plots (heatmaps, density plot)
+
+def absolute_error_plot(oos_list: list[pd.DataFrame], models: list[str], stage: str) -> None:
+    '''
+    Plot absolute error over time for visualisation of magnitude
+    '''
+    fig, ax = plt.subplots()
+    for model, oos in zip(models, oos_list) :
+        oos["error"] = oos["actual data"] - oos["forecasted data"]
+        oos["abs_error"] = oos["error"].abs()
+        ax.plot(oos["date"], oos["abs_error"], '-.', label =f"forecasted - {model}")
+
+    ax.set_ylabel("magnitude")
+    ax.set_xlabel("date")
+    ax.legend()
+    ax.set_title(f"Absolute error over time ({stage})")
+    daily_labels(ax)
+    fig.tight_layout(pad=1.2)
+    save_figure(fig, f"absolute_error_{stage}")
+
 def plot_all() -> None:
     '''
     Centralises execution of all comparative experiments
@@ -105,4 +128,6 @@ def plot_all() -> None:
     forecast_plot(oos_tuned, models, "tuned")
     metrics_plots(metrics_baselines, models, "baseline")
     metrics_plots(metrics_tuned, models, "tuned")
+    absolute_error_plot(oos_baselines, models, "baselines")
+    absolute_error_plot(oos_tuned, models, "tuned")
 
