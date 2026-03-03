@@ -71,7 +71,7 @@ def fit_missing_imputer(df: pd.DataFrame) -> dict[str, Any]:
     } 
 
 def apply_missing_imputer(df: pd.DataFrame, 
-                          stats: dict[str, Any]) -> tuple[pd.DataFrame, dict[str, Any]]:
+                          stats: dict[str, Any], strategy: str) -> tuple[pd.DataFrame, dict[str, Any]]:
     '''
     Carries out imputation on all data
     Facilitates a separation of concerns between fitting and applying imputation
@@ -88,13 +88,24 @@ def apply_missing_imputer(df: pd.DataFrame,
 
     # impute remaining missing sales
     m_sales = out["sales"].isna()
-    if m_sales.any():
-        med_dow = pd.Series(stats["med_dow"])
-        med_global = stats["med_global"]
 
-        out.loc[m_sales, "sales"] = (
-            out.loc[m_sales, "day_of_week"].map(med_dow).fillna(med_global).round(0) # maps imputable sales rows through day-specific median using global median as fallback 
-        )  
+    if strategy == "med_dow":
+        if m_sales.any():
+            med_dow = pd.Series(stats["med_dow"])
+            med_global = stats["med_global"]
+
+            out.loc[m_sales, "sales"] = (
+                out.loc[m_sales, "day_of_week"].map(med_dow).fillna(med_global).round(0) # maps imputable sales rows through day-specific median using global median as fallback 
+            )  
+
+    elif strategy == "med_global":
+        if m_sales.any():
+            med_global = stats["med_global"]
+
+            out.loc[m_sales, "sales"] = (
+                out.loc[m_sales].fillna(med_global).round(0) # maps imputable sales rows using global median 
+            )
+
  
 
     summary = { # summry report
@@ -136,10 +147,11 @@ def clean_data(df: pd.DataFrame, train_df: pd.DataFrame):
             .pipe(coerce_numeric))
     
     stats = fit_missing_imputer(train_df)
-    df, report = apply_missing_imputer(df, stats)
+    dow_median_df, report = apply_missing_imputer(df, stats, "med_dow")
+    global_median_df, report = apply_missing_imputer(df, stats, "med_global")
 
-    df = (df
+    dow_median_df, global_median_df = (dow_median_df, global_median_df
             .pipe(handle_duplicates)
             .pipe(handle_outliers))
     
-    return df, report
+    return dow_median_df, global_median_df, report

@@ -24,35 +24,6 @@ def calculate_metrics(y_test: pd.Series,
     return {"MAE": mae, "MASE": mase, "RMSE": rmse}
 
 
-# def naive_forecast(y_train: pd.Series, 
-#                    y_test: pd.Series, 
-#                    kind: str, 
-#                    test: pd.DataFrame) -> None:
-#     '''
-#     Implements naive baseline for forecasting performance benchmark
-#     '''
-#     y_train = np.asarray(y_train)
-#     y_test  = np.asarray(y_test)
-
-#     preds = np.empty_like(y_test, dtype=float)
-#     preds[0] = y_train[-1] # predict first test point using last train value
-#     preds[1:] = y_test[:-1] # then predict using previous actual (1-step naive)
-
-#     oos_all, metrics_all = [], []
-#     oos = test[["date"]].copy()
-#     oos["Actual data"] = y_test
-#     oos["Forecasted data"] = preds
-#     oos["model"] = kind
-#     metrics = calculate_metrics(y_test, y_train, preds)
-#     metrics["model"] = kind
-#     metrics_all.append(metrics)
-#     oos = pd.concat(oos_all, ignore_index=True)
-#     metrics = pd.DataFrame(metrics_all)
-#     oos.name = f"{kind}_predictions_baseline"
-#     metrics.name = f"{kind}_metrics_baseline"
-#     save_oos(oos, oos.name)
-#     save_metrics(metrics, metrics.name)
-
 
 def backtest(df: pd.DataFrame, 
              kind: str, 
