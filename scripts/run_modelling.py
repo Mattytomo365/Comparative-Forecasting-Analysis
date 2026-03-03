@@ -11,7 +11,7 @@ Module for model tuning, testing, and training functions
 def run(data_path="data/sales_daily_processed.csv", target="sales"):
     df = load_csv(data_path)
     features = feature_cols(df)
-    train_df, holdout_df = time_split(df) # simple holdout splitter
+    train, test = time_split(df) # simple holdout splitter
     
 
     # train on suitable default parameter combinations first to give performance baselines
@@ -50,7 +50,7 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
 
     for kind, grid in Grids.items():
         # tune on train only
-        best = grid_search(train_df, features, target, kind, param_grid=grid)
+        best = grid_search(train, features, target, kind, param_grid=grid)
         print("Best CV: ", best)
 
         # refit on train with best hyper-parameters

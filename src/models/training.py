@@ -6,20 +6,23 @@ from xgboost import XGBRegressor
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from typing import Mapping, Any
 import pandas as pd
+from src.models.evaluation import calculate_metrics
 '''
 Orchestrates ml model training, tuning, testing, and saving using preprocessed data
 '''
 
-def time_split(df: pd.DataFrame, days=56) -> tuple[pd.DataFrame, pd.DataFrame]:
+def time_split(df: pd.DataFrame, days: int = 56) -> tuple[pd.DataFrame, pd.DataFrame]:
     '''
     Create a single holdout using time-aware split
     '''
-    if df is None or len(df) == 0: # enforce datetime
-        raise ValueError("Empty dataframe provided to time_split")
-    cutoff = df["date"].max() - pd.Timedelta(days)
-    train = df[df["date"] <= cutoff].reset_index(drop=True)
-    holdout = df[df["date"] >= cutoff].reset_index(drop=True)
-    return train, holdout
+    df = df.sort_values("date").reset_index(drop=True)
+
+    if len(df) <= days:
+        raise ValueError("Not enough rows to create holdout")
+
+    train = df.iloc[:-days].reset_index(drop=True)
+    test = df.iloc[-days:].reset_index(drop=True)
+    return train, test
 
 
 def make_estimator(X_train: pd.DataFrame, 
@@ -60,12 +63,12 @@ def train_model(train: pd.DataFrame,
     if len(features) == 0:
         raise ValueError("No training features found after applying exclude set")
 
-    X_train, y_train = train[features], train[target]
+    X_train, y_train = train[features], train[target] # manual split
     X_test, y_test = test[features], test[target]
     model = make_estimator(X_train, y_train, kind, params)
 
     if kind == "sarimax":
-        results = model.fit()
+        results = model.fit()  # data is passed when model is constructed
         drop_cols = [c for c in X_test.columns if c.startswith("sales_lag") or c.startswith("sales_roll")]
         X_test_sarimax = X_test.drop(columns=drop_cols)
         preds = results.get_forecast(steps=len(X_test_sarimax), exog=X_test_sarimax).predicted_mean
@@ -81,6 +84,5 @@ def train_model(train: pd.DataFrame,
     oos = test[["date"]].copy() # out-of-sample predictions
     oos["actual data"] = y_test
     oos["forecasted data"] = preds
-    from src.models.evaluation import calculate_metrics
     metrics = calculate_metrics(y_test, y_train, preds) # calculate metrics for current window predicted
     return oos, metrics, model
