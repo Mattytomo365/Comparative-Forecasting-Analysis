@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from typing import Any
+from sklearn.metrics import mean_absolute_error, root_mean_squared_error
 from figures.save_figure import save_figure
 from src.dataset.load_save import load_csv, load_metrics
 '''
@@ -79,7 +80,6 @@ def metrics_plots(metrics_list: list[pd.DataFrame], models: list[str], stage: st
     fig.tight_layout()
     save_figure(fig, f"metrics_plot_{stage}")
 
-# Summary table of rankings
 # Error distribution plots (heatmaps, density plot)
 
 def absolute_error_plot(oos_list: list[pd.DataFrame], models: list[str], stage: str) -> None:
@@ -99,6 +99,46 @@ def absolute_error_plot(oos_list: list[pd.DataFrame], models: list[str], stage: 
     daily_labels(ax)
     fig.tight_layout(pad=1.2)
     save_figure(fig, f"absolute_error_{stage}")
+
+
+def ranked_summary(oos_list: list[pd.DataFrame], models: list[str], primary: str = "mae") -> pd.DataFrame:
+    '''
+    Generate a ranked table for summary of findings
+    '''
+    # calculate overall metrics for entire holdout
+    rows = []
+    for oos, model in zip(oos_list, models):
+        y_test = oos["actual data"]
+        y_pred = oos["forecasted data"]
+
+        mae = float(mean_absolute_error(y_test, y_pred))
+        rmse = float(root_mean_squared_error(y_test, y_pred))
+        # me = float(np.mean(y_true - y_pred))  # bias
+        
+        rows.append({
+            "model": model,
+            "mae": mae,
+            "rmse": rmse,
+            #"me": me
+        })
+
+    summary = pd.DataFrame(rows)
+
+    summary["rank"] = summary[primary].rank(method="dense", ascending=True).astype(int)
+
+    return summary.sort_values(["rank", "model"]).reset_index(drop=True)
+
+def ranked_table(summary: pd.DataFrame, stage: str) -> None:
+    '''
+    Visualises ranked table
+    ''' 
+    fig, ax = plt.subplots()
+    ax.axis("off")
+    ax.table(cellText=summary.values, colLabels=summary.columns, loc="center")
+    ax.set_title(f"Ranked metrics table ({stage})")
+    fig.tight_layout()
+    save_figure(fig, f"metrics_table_{stage}")
+
 
 def plot_all() -> None:
     '''
@@ -126,8 +166,16 @@ def plot_all() -> None:
 
     forecast_plot(oos_baselines, models, "baselines")
     forecast_plot(oos_tuned, models, "tuned")
+
     metrics_plots(metrics_baselines, models, "baseline")
     metrics_plots(metrics_tuned, models, "tuned")
+
     absolute_error_plot(oos_baselines, models, "baselines")
     absolute_error_plot(oos_tuned, models, "tuned")
+
+    baselines_ranked = ranked_summary(oos_baselines, models)
+    tuned_ranked = ranked_summary(oos_tuned, models)
+
+    ranked_table(baselines_ranked, "baselines")
+    ranked_table(tuned_ranked, "tuned")
 

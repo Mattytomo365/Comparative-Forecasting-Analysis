@@ -6,6 +6,7 @@ from xgboost import XGBRegressor
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from typing import Mapping, Any
 import pandas as pd
+from src.models.evaluation import calculate_metrics
 '''
 Orchestrates ml model training, tuning, testing, and saving using preprocessed data
 '''
@@ -83,6 +84,5 @@ def train_model(train: pd.DataFrame,
     oos = test[["date"]].copy() # out-of-sample predictions
     oos["actual data"] = y_test
     oos["forecasted data"] = preds
-    from src.models.evaluation import calculate_metrics
     metrics = calculate_metrics(y_test, y_train, preds) # calculate metrics for current window predicted
     return oos, metrics, model
