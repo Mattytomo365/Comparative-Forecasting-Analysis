@@ -18,7 +18,7 @@ def run(impute_analysis_path="data/sales_globally_imputed.csv", data_path="data/
     models = ["lasso", "sarimax", "xgboost"]
     for model in models:
         params = read_configuration(model)
-        oos, metrics, model = backtest(impute_df, model, features, params, target)
+        oos, metrics = backtest(impute_df, model, features, params, target)
         oos_list.append(oos)
         metrics_list.append(metrics)
 

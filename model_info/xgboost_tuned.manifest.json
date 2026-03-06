@@ -5,10 +5,10 @@
   "parameters": {
     "colsample_bytree": 1.0,
     "learning_rate": 0.08,
-    "max_depth": 5,
-    "min_child_weight": 10,
-    "reg_lambda": 1.0,
-    "subsample": 1.0
+    "max_depth": 3,
+    "min_child_weight": 1,
+    "reg_lambda": 10.0,
+    "subsample": 0.8
   },
   "features": [
     "weekly_total",
@@ -27,6 +27,7 @@
     "external_events__grand_national",
     "external_events__ormskirk_christmas_lights_switch_on",
     "external_events__ormskirk_festival_summer_bank_holiday",
+    "external_events__ormskirk_food_drink_festival_town_centre",
     "external_events__ormskirk_gingerbread_festival",
     "external_events__ormskirk_medieval_festival_coronation_park",
     "holiday__bonfire_night",
@@ -72,5 +73,5 @@
       "path": "results/xgboost_metrics_tuned.csv"
     }
   },
-  "created_at": "20260221-200737"
+  "created_at": "20260306-152757"
 }

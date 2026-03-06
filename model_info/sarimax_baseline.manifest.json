@@ -32,6 +32,7 @@
     "external_events__grand_national",
     "external_events__ormskirk_christmas_lights_switch_on",
     "external_events__ormskirk_festival_summer_bank_holiday",
+    "external_events__ormskirk_food_drink_festival_town_centre",
     "external_events__ormskirk_gingerbread_festival",
     "external_events__ormskirk_medieval_festival_coronation_park",
     "holiday__bonfire_night",
@@ -77,5 +78,5 @@
       "path": "results/sarimax_metrics_baseline.csv"
     }
   },
-  "created_at": "20260221-200202"
+  "created_at": "20260306-152429"
 }

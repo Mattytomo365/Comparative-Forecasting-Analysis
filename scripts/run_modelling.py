@@ -21,7 +21,7 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
         ("sarimax", {"order": (0, 1, 1), "seasonal_order": (0, 1, 1, 7)}), # SARIMA
         ("xgboost", {"max_depth": 4, "learning_rate": 0.05}) # XGBoost
     ]:
-        oos, metrics, model = backtest(df, kind, features, default_params, target)
+        oos, metrics = backtest(df, kind, features, default_params, target)
         oos.name = f"{kind}_predictions_baseline"
         metrics.name = f"{kind}_metrics_baseline"
         oos_path = save_oos(oos, oos.name)
@@ -56,7 +56,7 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
         print("Best CV: ", best)
 
         # refit on train with best hyper-parameters
-        oos, metrics, model = backtest(df, kind, features, best["params"], target)
+        oos, metrics = backtest(df, kind, features, best["params"], target)
         oos.name = f"{kind}_predictions_tuned"
         metrics.name = f"{kind}_metrics_tuned"
         oos_path = save_oos(oos, oos.name)
