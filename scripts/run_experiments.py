@@ -22,11 +22,14 @@ def run(impute_analysis_path="data/sales_globally_imputed.csv", data_path="data/
         oos_list.append(oos)
         metrics_list.append(metrics)
 
-    impute_analysis_plots(impute_df, oos_list, metrics_list)
+    impute_analysis_plots(impute_df, oos_list, metrics_list, models)
 
     # feature analysis
-    df = load_csv(data_path)
-    uplifts = plot_all(df)
-    save_results(uplifts, "sales uplifts")
+    # df = load_csv(data_path)
+    # uplifts = plot_all(df)
+    # save_results(uplifts, "sales uplifts")
 
     # tuning analysis
+
+if __name__ == "__main__":
+    run()
