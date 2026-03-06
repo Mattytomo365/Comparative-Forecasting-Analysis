@@ -18,8 +18,7 @@ def save_manifest(kind: str,
                   features: list[str], 
                   params: Mapping[str, Any], 
                   oos_path: Path, 
-                  metrics_path: Path, 
-                  model: Any) -> None: 
+                  metrics_path: Path) -> None: 
     '''
     Writes model manifest JSON (Human-readable model metadata)
     '''

@@ -28,7 +28,7 @@ def run(raw_path="data/sales_daily.csv", out_path="data/sales_daily_processed.cs
 
     # data encoding
     schema = fit_onehot_schema(df_med_dow)
-    save_onehot_schema(schema, "registry/onehot_schema.json")
+    save_onehot_schema(schema, "data/onehot_schema.json")
 
     df_med_dow = apply_onehot_schema(df_med_dow, schema, drop_original=True)
     df_med_global = apply_onehot_schema(df_med_global, schema, drop_original=True)
@@ -39,7 +39,7 @@ def run(raw_path="data/sales_daily.csv", out_path="data/sales_daily_processed.cs
     df_med_global = add_all_features(df_med_global)
     print(df_med_dow)
     df_med_dow.to_csv(out_path, index=False, mode="w")
-    df_med_global.to_csv("data/sales_globally_imputed", index=False, mode="w") # enables imputation analysis
+    df_med_global.to_csv("data/sales_globally_imputed.csv", index=False, mode="w") # enables imputation analysis
 
 
 

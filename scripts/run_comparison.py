@@ -9,10 +9,5 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
     df = load_csv(data_path)
     plot_all()
 
-# use data from all model results datasets (post and prior tuning) with included predictions, average metrics if necessary?
-# produce ranked table
-# error distribution comparison
-# rolling error plots
-
 if __name__ == "__main__":
     run()

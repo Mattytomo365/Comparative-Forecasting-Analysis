@@ -6,7 +6,7 @@ from xgboost import XGBRegressor
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from typing import Mapping, Any
 import pandas as pd
-from src.models.evaluation import calculate_metrics
+from src.models.metrics import calculate_metrics
 '''
 Orchestrates ml model training, tuning, testing, and saving using preprocessed data
 '''

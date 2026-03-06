@@ -1,4 +1,5 @@
 from sklearn.model_selection import ParameterGrid
+from pathlib import Path
 from typing import Iterator, Mapping, Any
 from sklearn.metrics import mean_absolute_error
 from src.models.training import make_estimator
@@ -116,7 +117,7 @@ def read_configuration(kind: str) -> dict[str, float, float]:
     '''
     Reads manifest JSON file - used for displaying model information to user
     '''
-    path = f"model_info/{kind}_best_params.json"
+    path = Path(f"model_info/{kind}_best_params.json")
     try:
         data = json.loads(path.read_text())
     except json.JSONDecodeError as e:
