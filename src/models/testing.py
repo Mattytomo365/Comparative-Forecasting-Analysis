@@ -7,7 +7,7 @@ def backtest(df: pd.DataFrame,
              kind: str, 
              features: list[str], 
              params: Mapping[str, Any], 
-             target: str) -> tuple[pd.DataFrame, pd.DataFrame, Any]:
+             target: str) -> tuple[pd.DataFrame, pd.DataFrame]:
     '''
     Orchestrate rolling-origin/expanding-window backtesting using established outer windows
     '''
@@ -21,7 +21,7 @@ def backtest(df: pd.DataFrame,
 
     for train_mask, test_mask in rolling_splits(dates, horizon_days, min_training_days): # rolling out-of-sample windows
         train, test = df.loc[train_mask], df.loc[test_mask]
-        oos, metrics, model = train_model(train, test, kind, features, target, params)
+        oos, metrics = train_model(train, test, kind, features, target, params)
         oos["model"] = kind
         oos["window"] = window
         metrics["model"] = kind
@@ -31,4 +31,4 @@ def backtest(df: pd.DataFrame,
         metrics_all.append(metrics)
         window = window + 1
 
-    return pd.concat(oos_all, ignore_index=True), pd.DataFrame(metrics_all), model
+    return pd.concat(oos_all, ignore_index=True), pd.DataFrame(metrics_all)

@@ -26,7 +26,7 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
         metrics.name = f"{kind}_metrics_baseline"
         oos_path = save_oos(oos, oos.name)
         metrics_path = save_metrics(metrics, metrics.name)
-        save_manifest(kind, "baseline", target, features, default_params, oos_path, metrics_path, model) # baseline model manifests
+        save_manifest(kind, "baseline", target, features, default_params, oos_path, metrics_path) # baseline model manifests
 
     # define param grids for each model type
     Grids = {
@@ -61,7 +61,7 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
         metrics.name = f"{kind}_metrics_tuned"
         oos_path = save_oos(oos, oos.name)
         metrics_path = save_metrics(metrics, metrics.name)
-        save_manifest(kind, "tuned", target, features, best["params"], oos_path, metrics_path, model) # tuned model manifests
+        save_manifest(kind, "tuned", target, features, best["params"], oos_path, metrics_path) # tuned model manifests
 
         print("Model saved")
 

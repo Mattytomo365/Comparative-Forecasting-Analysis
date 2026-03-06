@@ -56,7 +56,7 @@ def train_model(train: pd.DataFrame,
                 kind: str, 
                 features: list[str], 
                 target: str, 
-                params: Mapping[str, Any]) -> tuple[pd.DataFrame, dict[str, float], Any]:
+                params: Mapping[str, Any]) -> tuple[pd.DataFrame, dict[str, float]]:
     '''
     Trains and tests specified model with specified parameters for the specified window of data
     '''
@@ -85,4 +85,4 @@ def train_model(train: pd.DataFrame,
     oos["actual data"] = y_test
     oos["forecasted data"] = preds
     metrics = calculate_metrics(y_test, y_train, preds) # calculate metrics for current window predicted
-    return oos, metrics, model
+    return oos, metrics
