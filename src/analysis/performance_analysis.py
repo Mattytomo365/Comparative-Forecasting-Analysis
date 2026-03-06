@@ -29,7 +29,7 @@ def plot_residuals(oos_baseline: pd.DataFrame, oos_tuned: pd.DataFrame, model: s
     ax.legend()
     daily_labels(ax)
     fig.tight_layout(pad=1.2)
-    save_figure(fig, f"residual_{model}")
+    save_figure(fig, f"residual_{model}", "evaluation_figures")
 
 def forecast_plot(oos_list: list[pd.DataFrame], models: list[str], stage: str) -> None:
     '''
@@ -47,7 +47,7 @@ def forecast_plot(oos_list: list[pd.DataFrame], models: list[str], stage: str) -
     ax.set_title(f"forecast vs. actual data ({stage})")
     daily_labels(ax)
     fig.tight_layout(pad=1.2)
-    save_figure(fig, f"forecast_vs_actual_{stage}")
+    save_figure(fig, f"forecast_vs_actual_{stage}", "evaluation_figures")
 
 def metrics_plots(metrics_list: list[pd.DataFrame], models: list[str], stage: str) -> None:
     '''
@@ -78,9 +78,8 @@ def metrics_plots(metrics_list: list[pd.DataFrame], models: list[str], stage: st
 
     fig.suptitle(f"Metrics for all {stage} models across both folds")
     fig.tight_layout()
-    save_figure(fig, f"metrics_plot_{stage}")
+    save_figure(fig, f"metrics_plot_{stage}", "evaluation_figures")
 
-# Error distribution plots (heatmaps, density plot)
 
 def absolute_error_plot(oos_list: list[pd.DataFrame], models: list[str], stage: str) -> None:
     '''
@@ -98,7 +97,7 @@ def absolute_error_plot(oos_list: list[pd.DataFrame], models: list[str], stage: 
     ax.set_title(f"Absolute error over time ({stage})")
     daily_labels(ax)
     fig.tight_layout(pad=1.2)
-    save_figure(fig, f"absolute_error_{stage}")
+    save_figure(fig, f"absolute_error_{stage}", "evaluation_figures")
 
 
 def ranked_summary(oos_list: list[pd.DataFrame], models: list[str], primary: str = "mae") -> pd.DataFrame:
@@ -137,7 +136,7 @@ def ranked_table(summary: pd.DataFrame, stage: str) -> None:
     ax.table(cellText=summary.values, colLabels=summary.columns, loc="center")
     ax.set_title(f"Ranked metrics table ({stage})")
     fig.tight_layout()
-    save_figure(fig, f"metrics_table_{stage}")
+    save_figure(fig, f"metrics_table_{stage}", "evaluation_figures")
 
 
 def plot_all() -> None:

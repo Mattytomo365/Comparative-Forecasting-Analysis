@@ -41,7 +41,7 @@ def monthly_avg(df: pd.DataFrame,
     ax.set_title("Average daily sales per month")
     ax.grid(True, which="major", linestyle=":", linewidth=0.8, alpha=0.7)
     monthly_labels(ax)
-    save_figure(fig, name)
+    save_figure(fig, name, "eda_figures")
 
     return pd.DataFrame(month_m[["month", "label", "value", "n_days"]])
 
@@ -84,15 +84,7 @@ def weekday_avg_plot(weekday_averages: list[pd.DataFrame]) -> None:
     ax.set_ylabel("average sales")
     ax.set_title("Average weekday sales across all months")
     ax.grid(True, which="major", linestyle=":", linewidth=0.8, alpha=0.7)
-    save_figure(fig, "weekday_average_total")
-
-
-
-def sales_distribution(df: pd.DataFrame, name: str) -> None:
-    '''
-    Generates a box plot to visualise sales distribution
-    '''
-    pass
+    save_figure(fig, "weekday_average_total", "eda_figures")
 
 
 def monthly_labels(ax) -> None:
@@ -128,7 +120,7 @@ def fourier_basis_wave(df: pd.DataFrame,
     ax.grid(True, which="major", linestyle=":", linewidth=0.8, alpha=0.7)
     monthly_labels(ax)
 
-    save_figure(fig, name)
+    save_figure(fig, name, "eda_figures")
 
 
 def seasonal_curve(df: pd.DataFrame, 
@@ -167,7 +159,7 @@ def seasonal_curve(df: pd.DataFrame,
     ax.grid(True, which="major", linestyle=":", linewidth=0.8, alpha=0.7)
     monthly_labels(ax)
 
-    save_figure(fig, "fourier_seasonal")
+    save_figure(fig, "fourier_seasonal", "eda_figures")
 
 
 
@@ -187,7 +179,7 @@ def fourier_unit_circle(df: pd.DataFrame,
     if title: ax.set_title(title)
     ax.grid(True, which="major", linestyle=":", linewidth=0.8, alpha=0.7)
 
-    save_figure(fig, name)
+    save_figure(fig, name, "eda_figures")
 
 
 
@@ -214,7 +206,7 @@ def acf_plots(df: pd.DataFrame,
     axes[1].set_title(f"ACF {title}")
     axes[2].set_title(f"PACF {title}")
     
-    save_figure(fig, name)
+    save_figure(fig, name, "eda_figures")
 
 
 def decomposition_plot(df: pd.DataFrame, name: str) -> None:
@@ -225,16 +217,16 @@ def decomposition_plot(df: pd.DataFrame, name: str) -> None:
     decomposition = seasonal_decompose(df["sales"], model='additive', period=7) # weekly seasonal decomposition of sales
     fig = decomposition.plot()
     ax.set_title("Seasonal decomposition plot")
-    save_figure(fig, name)
+    save_figure(fig, name, "eda_figures")
 
 
-def perform_adf(df: pd.DataFrame) -> None:
-    '''
-    Performs augmented dickey-fuller test
-    '''
-    adf_test = adfuller(df["sales"])
-    print('ADF Statistic: %f' % adf_test[0])
-    print('p-value: %f' % adf_test[1])
+# def perform_adf(df: pd.DataFrame) -> None:
+#     '''
+#     Performs augmented dickey-fuller test
+#     '''
+#     adf_test = adfuller(df["sales"])
+#     print('ADF Statistic: %f' % adf_test[0])
+#     print('p-value: %f' % adf_test[1])
 
 
 
