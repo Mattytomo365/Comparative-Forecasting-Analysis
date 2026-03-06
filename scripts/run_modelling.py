@@ -1,4 +1,4 @@
-from src.models.tuning import grid_search, feature_cols
+from src.models.tuning import grid_search, feature_cols, save_configuration
 from src.models.evaluation import backtest, save_metrics, save_oos
 from src.dataset.load_save import load_csv
 from src.models.registry import save_manifest
@@ -51,6 +51,7 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
     for kind, grid in Grids.items():
         # tune on train only
         best = grid_search(train, features, target, kind, param_grid=grid)
+        save_configuration(best)
         print("Best CV: ", best)
 
         # refit on train with best hyper-parameters

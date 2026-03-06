@@ -35,7 +35,7 @@ def save_manifest(kind: str,
         },
         "created_at": time.strftime("%Y%m%d-%H%M%S")
     }
-    with open((f"registry/{kind}_{stage}.manifest.json"), "w") as f:
+    with open((f"model_info/{kind}_{stage}.manifest.json"), "w") as f:
         json.dump(manifest, f, indent=2)
 
 
@@ -44,7 +44,7 @@ def read_manifest(kind: str, stage: str) -> dict[str, Any]:
     '''
     Reads manifest JSON file - used for displaying model information to user
     '''
-    path = f"registry/{kind}_{stage}.manifest.json"
+    path = f"model_info/{kind}_{stage}.manifest.json"
 
     if not path.exists():
         raise ModelNotFound(f"Manifest not found")
