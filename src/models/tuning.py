@@ -3,6 +3,7 @@ from typing import Iterator, Mapping, Any
 from sklearn.metrics import mean_absolute_error
 from src.models.training import make_estimator
 import numpy as np, pandas as pd
+import json
 
 '''
 Defines rolling origin protocol and cross-validation implementation
@@ -100,3 +101,24 @@ def grid_search(train: pd.DataFrame,
                best_score, best_params = avg, params
                
      return {"kind": kind, "score": best_score, "params": best_params}
+
+def save_configuration(params: dict[str, float, float]) -> None: 
+    '''
+    Writes tuned model hyperparameter configurations to assist with imputation analysis
+    '''
+    kind = params["kind"]
+    configuration = params["params"]
+    
+    with open((f"model_info/{kind}_best_params.json"), "w") as f:
+        json.dump(configuration, f, indent=2)
+
+def read_configuration(kind: str) -> dict[str, float, float]:
+    '''
+    Reads manifest JSON file - used for displaying model information to user
+    '''
+    path = f"model_info/{kind}_best_params.json"
+    try:
+        data = json.loads(path.read_text())
+    except json.JSONDecodeError as e:
+        raise (f"Invalid JSON in {path}: {e}") from e
+    return data
