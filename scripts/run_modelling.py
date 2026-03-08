@@ -31,7 +31,7 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
     # define param grids for each model type
     Grids = {
         "lasso": { # Lasso
-            "alpha": [0.01, 0.03, 0.1, 0.3, 1.0, 3.0, 10.0], # controls penalty strength
+            "alpha": [0.1, 0.3, 1.0, 3.0, 10.0, 30.0], # controls penalty strength
         },
 
         "sarimax": { # SARIMAX

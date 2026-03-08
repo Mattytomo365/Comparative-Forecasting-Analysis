@@ -167,7 +167,7 @@ def plot_all() -> None:
         oos_tune = load_csv(f"results/{model}_predictions_tuned.csv")
         oos_baselines.append(oos_baseline)
         oos_tuned.append(oos_tune)
-        plot_residuals(oos_baseline, oos_tune, model)
+        plot_residuals(oos_baseline, oos_tune, model, "evaluation_figures")
 
         metrics_baseline = load_metrics(f"results/{model}_metrics_baseline.csv")
         metrics_tune = load_metrics(f"results/{model}_metrics_tuned.csv")
