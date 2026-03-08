@@ -1,5 +1,6 @@
-from src.models.tuning import grid_search, feature_cols
-from src.models.evaluation import backtest, save_metrics, save_oos
+from src.models.tuning import grid_search, feature_cols, save_configuration
+from src.models.metrics import save_metrics, save_oos
+from src.models.testing import backtest
 from src.dataset.load_save import load_csv
 from src.models.registry import save_manifest
 from src.models.training import time_split
@@ -20,17 +21,17 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
         ("sarimax", {"order": (0, 1, 1), "seasonal_order": (0, 1, 1, 7)}), # SARIMA
         ("xgboost", {"max_depth": 4, "learning_rate": 0.05}) # XGBoost
     ]:
-        oos, metrics, model = backtest(df, kind, features, default_params, target)
+        oos, metrics = backtest(df, kind, features, default_params, target)
         oos.name = f"{kind}_predictions_baseline"
         metrics.name = f"{kind}_metrics_baseline"
         oos_path = save_oos(oos, oos.name)
         metrics_path = save_metrics(metrics, metrics.name)
-        save_manifest(kind, "baseline", target, features, default_params, oos_path, metrics_path, model) # baseline model manifests
+        save_manifest(kind, "baseline", target, features, default_params, oos_path, metrics_path) # baseline model manifests
 
     # define param grids for each model type
     Grids = {
         "lasso": { # Lasso
-            "alpha": [0.01, 0.03, 0.1, 0.3, 1.0, 3.0, 10.0], # controls penalty strength
+            "alpha": [0.1, 0.3, 1.0, 3.0, 10.0, 30.0], # controls penalty strength
         },
 
         "sarimax": { # SARIMAX
@@ -51,15 +52,16 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
     for kind, grid in Grids.items():
         # tune on train only
         best = grid_search(train, features, target, kind, param_grid=grid)
+        save_configuration(best)
         print("Best CV: ", best)
 
         # refit on train with best hyper-parameters
-        oos, metrics, model = backtest(df, kind, features, best["params"], target)
+        oos, metrics = backtest(df, kind, features, best["params"], target)
         oos.name = f"{kind}_predictions_tuned"
         metrics.name = f"{kind}_metrics_tuned"
         oos_path = save_oos(oos, oos.name)
         metrics_path = save_metrics(metrics, metrics.name)
-        save_manifest(kind, "tuned", target, features, best["params"], oos_path, metrics_path, model) # tuned model manifests
+        save_manifest(kind, "tuned", target, features, best["params"], oos_path, metrics_path) # tuned model manifests
 
         print("Model saved")
 

@@ -5,8 +5,6 @@ from src.preprocessing.features import add_all_features
 from src.dataset.prepare import merge_data
 from src.models.training import time_split
 
-from src.models.tuning import feature_cols
-
 '''
 Module for data ingestion, cleaning, and transformation functions
 '''
@@ -24,34 +22,25 @@ def run(raw_path="data/sales_daily.csv", out_path="data/sales_daily_processed.cs
 
     # data cleaning
     train, test = time_split(df)
-    df_clean, report = clean_data(df_merged, train)
-    print(df_clean)
+    df_med_dow, df_med_global, report = clean_data(df_merged, train)
+    print(df_med_dow)
     print(report)
 
     # data encoding
-    schema = fit_onehot_schema(df_clean)
-    save_onehot_schema(schema, "registry/onehot_schema.json")
+    schema = fit_onehot_schema(df_med_dow)
+    save_onehot_schema(schema, "data/onehot_schema.json")
 
-    df_onehot = apply_onehot_schema(df_clean, schema, drop_original=True)
-    print(df_onehot)
+    df_med_dow = apply_onehot_schema(df_med_dow, schema, drop_original=True)
+    df_med_global = apply_onehot_schema(df_med_global, schema, drop_original=True)
+    print(df_med_dow)
 
     # feature engineering
-    df_feature = add_all_features(df_onehot)
-    print(df_feature)
-    df_feature.to_csv(out_path, index=False, mode="w")
+    df_med_dow = add_all_features(df_med_dow)
+    df_med_global = add_all_features(df_med_global)
+    print(df_med_dow)
+    df_med_dow.to_csv(out_path, index=False, mode="w")
+    df_med_global.to_csv("data/sales_globally_imputed.csv", index=False, mode="w") # enables imputation analysis
 
-    train, test = time_split(df_feature)
-    features = feature_cols(df_feature)
-    target = "sales"
-    X_train, y_train = train[features], train[target] # manual split
-    X_test, y_test = test[features], test[target]
-
-    train.to_csv("data/train.csv", index=False, mode="w")
-    test.to_csv("data/test.csv", index=False, mode="w")
-    X_train.to_csv("data/X_train.csv", index=False, mode="w")
-    X_test.to_csv("data/X_test.csv", index=False, mode="w")
-    y_train.to_csv("data/y_train.csv", index=False, mode="w")
-    y_test.to_csv("data/y_test.csv", index=False, mode="w")
 
 
 if __name__ == "__main__": # used for running script outside of vscode, add argparsing to complete configuration

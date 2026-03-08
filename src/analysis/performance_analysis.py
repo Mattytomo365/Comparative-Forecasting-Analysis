@@ -15,7 +15,10 @@ def daily_labels(ax) -> None:
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%d %b"))
     ax.tick_params(axis="x", rotation=30)
 
-def plot_residuals(oos_baseline: pd.DataFrame, oos_tuned: pd.DataFrame, model: str) -> None:
+def plot_residuals(oos_baseline: pd.DataFrame, 
+                   oos_tuned: pd.DataFrame, 
+                   model: str, 
+                   folder: str) -> None:
     '''
     Plot model residuals to analyse accuracy across folds
     '''
@@ -29,9 +32,12 @@ def plot_residuals(oos_baseline: pd.DataFrame, oos_tuned: pd.DataFrame, model: s
     ax.legend()
     daily_labels(ax)
     fig.tight_layout(pad=1.2)
-    save_figure(fig, f"residual_{model}")
+    save_figure(fig, f"residual_{model}", folder)
 
-def forecast_plot(oos_list: list[pd.DataFrame], models: list[str], stage: str) -> None:
+def forecast_plot(oos_list: list[pd.DataFrame], 
+                  models: list[str], 
+                  stage: str, 
+                  folder: str) -> None:
     '''
     Plot forecasted data vs. actual data
     '''
@@ -47,9 +53,12 @@ def forecast_plot(oos_list: list[pd.DataFrame], models: list[str], stage: str) -
     ax.set_title(f"forecast vs. actual data ({stage})")
     daily_labels(ax)
     fig.tight_layout(pad=1.2)
-    save_figure(fig, f"forecast_vs_actual_{stage}")
+    save_figure(fig, f"forecast_vs_actual_{stage}", folder)
 
-def metrics_plots(metrics_list: list[pd.DataFrame], models: list[str], stage: str) -> None:
+def metrics_plots(metrics_list: list[pd.DataFrame], 
+                  models: list[str], 
+                  stage: str, 
+                  folder: str) -> None:
     '''
     Plot baseline and tuned evaluation metrics against eachother for each model
     '''
@@ -78,11 +87,13 @@ def metrics_plots(metrics_list: list[pd.DataFrame], models: list[str], stage: st
 
     fig.suptitle(f"Metrics for all {stage} models across both folds")
     fig.tight_layout()
-    save_figure(fig, f"metrics_plot_{stage}")
+    save_figure(fig, f"metrics_plot_{stage}", folder)
 
-# Error distribution plots (heatmaps, density plot)
 
-def absolute_error_plot(oos_list: list[pd.DataFrame], models: list[str], stage: str) -> None:
+def absolute_error_plot(oos_list: list[pd.DataFrame], 
+                        models: list[str], 
+                        stage: str, 
+                        folder: str) -> None:
     '''
     Plot absolute error over time for visualisation of magnitude
     '''
@@ -98,7 +109,7 @@ def absolute_error_plot(oos_list: list[pd.DataFrame], models: list[str], stage: 
     ax.set_title(f"Absolute error over time ({stage})")
     daily_labels(ax)
     fig.tight_layout(pad=1.2)
-    save_figure(fig, f"absolute_error_{stage}")
+    save_figure(fig, f"absolute_error_{stage}", folder)
 
 
 def ranked_summary(oos_list: list[pd.DataFrame], models: list[str], primary: str = "mae") -> pd.DataFrame:
@@ -128,7 +139,7 @@ def ranked_summary(oos_list: list[pd.DataFrame], models: list[str], primary: str
 
     return summary.sort_values(["rank", "model"]).reset_index(drop=True)
 
-def ranked_table(summary: pd.DataFrame, stage: str) -> None:
+def ranked_table(summary: pd.DataFrame, stage: str, folder: str) -> None:
     '''
     Visualises ranked table
     ''' 
@@ -137,7 +148,7 @@ def ranked_table(summary: pd.DataFrame, stage: str) -> None:
     ax.table(cellText=summary.values, colLabels=summary.columns, loc="center")
     ax.set_title(f"Ranked metrics table ({stage})")
     fig.tight_layout()
-    save_figure(fig, f"metrics_table_{stage}")
+    save_figure(fig, f"metrics_table_{stage}", folder)
 
 
 def plot_all() -> None:
@@ -156,7 +167,7 @@ def plot_all() -> None:
         oos_tune = load_csv(f"results/{model}_predictions_tuned.csv")
         oos_baselines.append(oos_baseline)
         oos_tuned.append(oos_tune)
-        plot_residuals(oos_baseline, oos_tune, model)
+        plot_residuals(oos_baseline, oos_tune, model, "evaluation_figures")
 
         metrics_baseline = load_metrics(f"results/{model}_metrics_baseline.csv")
         metrics_tune = load_metrics(f"results/{model}_metrics_tuned.csv")
@@ -164,18 +175,18 @@ def plot_all() -> None:
         metrics_tuned.append(metrics_tune)
 
 
-    forecast_plot(oos_baselines, models, "baselines")
-    forecast_plot(oos_tuned, models, "tuned")
+    forecast_plot(oos_baselines, models, "baselines", "evaluation_figures")
+    forecast_plot(oos_tuned, models, "tuned", "evaluation_figures")
 
-    metrics_plots(metrics_baselines, models, "baseline")
-    metrics_plots(metrics_tuned, models, "tuned")
+    metrics_plots(metrics_baselines, models, "baseline", "evaluation_figures")
+    metrics_plots(metrics_tuned, models, "tuned", "evaluation_figures")
 
-    absolute_error_plot(oos_baselines, models, "baselines")
-    absolute_error_plot(oos_tuned, models, "tuned")
+    absolute_error_plot(oos_baselines, models, "baselines", "evaluation_figures")
+    absolute_error_plot(oos_tuned, models, "tuned", "evaluation_figures")
 
     baselines_ranked = ranked_summary(oos_baselines, models)
     tuned_ranked = ranked_summary(oos_tuned, models)
 
-    ranked_table(baselines_ranked, "baselines")
-    ranked_table(tuned_ranked, "tuned")
+    ranked_table(baselines_ranked, "baselines", "evaluation_figures")
+    ranked_table(tuned_ranked, "tuned", "evaluation_figures")
 
