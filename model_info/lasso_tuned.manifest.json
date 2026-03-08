@@ -3,7 +3,7 @@
   "stage": "tuned",
   "target": "sales",
   "parameters": {
-    "alpha": 10.0
+    "alpha": 30.0
   },
   "features": [
     "weekly_total",
@@ -68,5 +68,5 @@
       "path": "results/lasso_metrics_tuned.csv"
     }
   },
-  "created_at": "20260306-152432"
+  "created_at": "20260308-220147"
 }
