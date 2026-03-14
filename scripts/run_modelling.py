@@ -11,7 +11,7 @@ Module for model tuning, testing, and training functions
 
 def run(data_path="data/sales_daily_processed.csv", target="sales"):
     df = load_csv(data_path)
-    features = feature_cols(df)
+    features = feature_cols(df, {})
     train, test = time_split(df) # simple holdout splitter
     
 

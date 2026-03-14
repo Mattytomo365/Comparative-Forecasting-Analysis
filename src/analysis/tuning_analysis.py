@@ -10,6 +10,7 @@ Produce tuned vs. default difference in MAE/RMSE/MASE per fold and averaged tabl
 def delta_plots(metrics_baselines: list[pd.DataFrame], 
                 metrics_tuned: list[pd.DataFrame], 
                 models: list[str], 
+                title: str,
                 folder: str) -> None:
     '''
     Visualises differences in MAE between tuned and baseline configurations via dumbell plots
@@ -17,6 +18,7 @@ def delta_plots(metrics_baselines: list[pd.DataFrame],
     fig, axes = plt.subplots(1, 3, figsize=(14, 4))
 
     for ax, model, baseline_df, tuned_df in zip(axes, models, metrics_baselines, metrics_tuned):
+        # retrieve all mae metrics from all folds on tuned and baseline configurations
         fold_1_baseline = baseline_df.loc[(baseline_df["window"] == 1) & (baseline_df["model"] == model), "MAE"]
         fold_1_tuned = tuned_df.loc[(tuned_df["window"] == 1) & (tuned_df["model"] == model), "MAE"]
         fold_2_baseline = baseline_df.loc[(baseline_df["window"] == 2) & (baseline_df["model"] == model), "MAE"]
@@ -30,16 +32,7 @@ def delta_plots(metrics_baselines: list[pd.DataFrame],
         ax.set_xlabel("fold")
         ax.axhline(0, color="black", linewidth=1)
 
-    fig.suptitle(f"MAE delta bar chart across all models and folds")
+    fig.suptitle(f"{title} MAE delta bar chart")
     fig.tight_layout()
     save_figure(fig, f"delta_plot", folder)
-
-def tuning_analysis_plots(df: pd.DataFrame, 
-                          metrics_baselines: list[pd.DataFrame], 
-                          metrics_tuned: list[pd.DataFrame], 
-                          models: list[str]) -> None:
-    '''
-    Centralise the plotting of all tuning analysis related visualisations
-    '''
-    delta_plots(metrics_baselines, metrics_tuned, models, "tuning_analysis_figures")
 

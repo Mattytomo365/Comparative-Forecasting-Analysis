@@ -5,8 +5,7 @@ Determines whether imputing missing sales values improves forecast accuracy and 
 Reports difference in MAE/RMSE/MASE across rolling-origin folds between imputation and row removal.
 '''
 
-def impute_analysis_plots(impute_df: pd.DataFrame, 
-                          oos_list: list[pd.DataFrame], 
+def impute_analysis_plots(oos_list: list[pd.DataFrame], 
                           metrics_list: list[pd.DataFrame],
                           models: list[str]) -> None:
     '''
