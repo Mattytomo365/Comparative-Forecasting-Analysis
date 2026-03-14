@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from typing import Any
 from sklearn.metrics import mean_absolute_error, root_mean_squared_error
 from figures.save_figure import save_figure
 from src.dataset.load_save import load_csv, load_metrics
