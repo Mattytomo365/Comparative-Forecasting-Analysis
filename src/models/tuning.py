@@ -12,11 +12,11 @@ Defines rolling origin protocol and cross-validation implementation
 
 EXCLUDE = {"date","sales","internal_events","external_events","holiday"}
 
-def feature_cols(df: pd.DataFrame, exclude_prefix: list[str]) -> list[str]:
+def feature_cols(df: pd.DataFrame) -> list[str]:
      '''
      Chooses appropriate model input features
      '''
-     return [c for c in df.columns if (c not in EXCLUDE) or (not c.startswith(exclude_prefix))]
+     return [c for c in df.columns if (c not in EXCLUDE)]
 
 
 def mae(y_test: pd.Series, 

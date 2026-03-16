@@ -10,7 +10,6 @@ Produce tuned vs. default difference in MAE/RMSE/MASE per fold and averaged tabl
 def delta_plots(metrics_baselines: list[pd.DataFrame], 
                 metrics_tuned: list[pd.DataFrame], 
                 models: list[str], 
-                title: str,
                 folder: str) -> None:
     '''
     Visualises differences in MAE between tuned and baseline configurations via dumbell plots
@@ -32,7 +31,7 @@ def delta_plots(metrics_baselines: list[pd.DataFrame],
         ax.set_xlabel("fold")
         ax.axhline(0, color="black", linewidth=1)
 
-    fig.suptitle(f"{title} MAE delta bar chart")
+    fig.suptitle("tuning analysis MAE delta bar chart")
     fig.tight_layout()
-    save_figure(fig, f"delta_plot", folder)
+    save_figure(fig, "tuning_delta_plot", folder)
 

@@ -1,12 +1,41 @@
 import pandas as pd
+import matplotlib.pyplot as plt
+from figures.save_figure import save_figure
 '''
 Explores uplift and feature importance metrics over different periods for different metrics
 '''
 
 UPLIFT_COLS = ["holiday", "internal_event", "external_event"] # skips numerical columns for sales uplift calculations
+OUT_COLS = ["tag", "n", "avg", "uplift"]
 
-def run_ablation():
-    pass
+def ablation_plots(metrics_tuned: list[pd.DataFrame],
+                ablation_metrics: list[pd.DataFrame],
+                models: list[str], 
+                folder: str,
+                group_name: str) -> None:
+    '''
+    Visualises differences in MAE between tuned and ablated configurations via dumbell plots
+    '''
+    fig, axes = plt.subplots(1, 3, figsize=(14, 4))
+
+    for ax, model, ablation_df, tuned_df in zip(axes, models, ablation_metrics, metrics_tuned):
+        # retrieve all mae metrics from all folds on tuned and ablated configurations
+        fold_1_ablation = ablation_df.loc[(ablation_df["window"] == 1) & (ablation_df["model"] == model), "MAE"]
+        fold_1_tuned = tuned_df.loc[(tuned_df["window"] == 1) & (tuned_df["model"] == model), "MAE"]
+        fold_2_ablation = ablation_df.loc[(ablation_df["window"] == 2) & (ablation_df["model"] == model), "MAE"]
+        fold_2_tuned = tuned_df.loc[(tuned_df["window"] == 2) & (tuned_df["model"] == model), "MAE"]
+
+        ax.bar("fold 1", fold_1_tuned - fold_1_ablation, label="fold 1 delta")
+        ax.bar("fold 2", fold_2_tuned - fold_2_ablation, label="fold 2 delta")
+
+        ax.set_title(model)
+        ax.set_ylabel("MAE difference")
+        ax.set_xlabel("fold")
+        ax.axhline(0, color="black", linewidth=1)
+
+    fig.suptitle(f"{group_name} ablation MAE delta bar chart")
+    fig.tight_layout()
+    save_figure(fig, f"{group_name}_delta_plot", folder)
 
 def permutation_importance():
     pass
@@ -20,7 +49,6 @@ def uplifts(df: pd.DataFrame,
     '''
     Compute uplift of specified factors against specified metric
     '''
-    OUT_COLS = ["tag", "n", "avg", "uplift"]
     d = df["date"]
     m = d.dt.month.eq(int(month)) # boolean mask
 
@@ -62,17 +90,15 @@ def uplifts(df: pd.DataFrame,
     
     return pd.DataFrame(tab[OUT_COLS])
 
-def plot_all(df: pd.DataFrame) -> pd.DataFrame:
-    '''
-    Percentage uplift for specified factor, month, and metric
-    '''
-    all_uplifts = []
-    for factor in UPLIFT_COLS:
-        for month in range(1, 13):
-            uplift = uplifts(df, factor, month, "sales")
-            uplift["factor"] = factor
-            uplift["month"] = month
-            all_uplifts.append(uplift)
-
-    run_ablation()
-    return pd.concat(all_uplifts, ignore_index=True)
+# def plot_all(df: pd.DataFrame) -> pd.DataFrame:
+#     '''
+#     Percentage uplift for specified factor, month, and metric
+#     '''
+#     all_uplifts = []
+#     for factor in UPLIFT_COLS:
+#         for month in range(1, 13):
+#             uplift = uplifts(df, factor, month, "sales")
+#             uplift["factor"] = factor
+#             uplift["month"] = month
+#             all_uplifts.append(uplift)
+#     return pd.concat(all_uplifts, ignore_index=True)
