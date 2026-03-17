@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from figures.save_figure import save_figure
+from src.analysis.performance_analysis import daily_labels
 
 '''
 Evaluate whether hyperparameter tuning yeilds better forecasting accuracy over default configurations for each model family. 
@@ -34,4 +35,23 @@ def delta_plots(metrics_baselines: list[pd.DataFrame],
     fig.suptitle("tuning analysis MAE delta bar chart")
     fig.tight_layout()
     save_figure(fig, "tuning_delta_plot", folder)
+
+def tuning_residuals(oos_baseline: pd.DataFrame, 
+                   oos_tuned: pd.DataFrame, 
+                   model: str, 
+                   folder: str) -> None:
+    '''
+    Plot model residuals to analyse accuracy across tuned and baseline configurations
+    '''
+    fig, ax = plt.subplots()
+    ax.scatter(oos_baseline["date"], oos_baseline["actual data"] - oos_baseline["forecasted data"], label="baseline") # baseline residuals
+    ax.scatter(oos_tuned["date"], oos_tuned["actual data"] - oos_tuned["forecasted data"], label="tuned") # tuned residuals
+
+    ax.set_title(f"OOS residuals over time - {model}")
+    ax.set_ylabel("actual values - forecasted values")
+    ax.set_xlabel("date")
+    ax.legend()
+    daily_labels(ax)
+    fig.tight_layout(pad=1.2)
+    save_figure(fig, f"tuning_residual_{model}", folder)
 

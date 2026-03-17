@@ -2,7 +2,7 @@ from src.dataset.load_save import load_csv, load_metrics
 from src.analysis.feature_analysis import ablation_plots, uplifts
 from results.save_results import save_results
 from src.analysis.impute_analysis import impute_analysis_plots
-from src.analysis.tuning_analysis import delta_plots
+from src.analysis.tuning_analysis import delta_plots, tuning_residuals
 from src.models.tuning import read_configuration, feature_cols
 from src.models.testing import backtest
 '''
@@ -27,7 +27,7 @@ def run(impute_analysis_path="data/sales_globally_imputed.csv", data_path="data/
     impute_oos_list = []
     impute_metrics_list = []
 
-    # metrics for tuning analysis
+    # oos predictions + metrics for tuning analysis
     metrics_baselines = []
     metrics_tuned = []
 
@@ -50,6 +50,9 @@ def run(impute_analysis_path="data/sales_globally_imputed.csv", data_path="data/
         metrics_tune = load_metrics(f"results/{model}_metrics_tuned.csv")
         metrics_baselines.append(metrics_baseline)
         metrics_tuned.append(metrics_tune)
+        oos_baseline = load_csv(f"results/{model}_predictions_baseline.csv")
+        oos_tune = load_csv(f"results/{model}_predictions_tuned.csv")
+        tuning_residuals(oos_baseline, oos_tune, model, "tuning_analysis_figures")
 
         # ablation tests (feature analysis)
         for group_name, feature_group in FEATURE_GROUPS.items():
@@ -61,7 +64,7 @@ def run(impute_analysis_path="data/sales_globally_imputed.csv", data_path="data/
     # impute analysis figures
     impute_analysis_plots(impute_oos_list, impute_metrics_list, models)
 
-    # tuning analysis figures
+    # tuning analysis delta plot
     delta_plots(metrics_baselines, metrics_tuned, models, "tuning_analysis_figures")
 
     # feature analysis results and figures
