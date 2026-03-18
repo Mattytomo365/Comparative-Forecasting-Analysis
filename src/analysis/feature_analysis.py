@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from figures.save_figure import save_figure
+from sklearn.inspection import permutation_importance
 '''
 Explores uplift and feature importance metrics over different periods for different metrics
 '''
@@ -37,9 +38,24 @@ def ablation_plots(metrics_tuned: list[pd.DataFrame],
     fig.tight_layout()
     save_figure(fig, f"{group_name}_delta_plot", folder)
 
-def permutation_importance():
-    pass
+def permutation_values(model: str,
+                        X_test: pd.DataFrame,
+                        y_test: pd.Series) -> pd.DataFrame:
+    '''
+    Calculates permutation feature importance values for all features
+    '''
+    r = permutation_importance(model, X_test, y_test, scoring="neg_mean_absolute_error", n_repeats=20, random_state=42, n_jobs=-1)
 
+    mae_increase_mean = -r.importances_mean
+    mae_increase_std = r.importances_std
+
+    out = pd.DataFrame({
+        "feature": X_test.columns,
+        "mae_increase_mean": mae_increase_mean,
+        "mae_increase_std": mae_increase_std,
+    }).sort_values("mae_increase_mean", ascending=False).reset_index(drop=True)
+
+    return out
 
 def uplifts(df: pd.DataFrame, 
             factor: str, 

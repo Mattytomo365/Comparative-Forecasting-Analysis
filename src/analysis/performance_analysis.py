@@ -43,7 +43,7 @@ def performance_residuals(oos_baseline: pd.DataFrame,
     fig.subplots_adjust(wspace=0.35)
     daily_labels(ax[0])
     daily_labels(ax[1])
-    #fig.tight_layout(pad=1.2)
+    fig.tight_layout(pad=1.2)
     save_figure(fig, f"residual_{model}", folder)
 
 def forecast_plot(oos_list: list[pd.DataFrame], 

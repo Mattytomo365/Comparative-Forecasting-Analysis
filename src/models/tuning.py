@@ -1,7 +1,7 @@
 from sklearn.model_selection import ParameterGrid
 from pathlib import Path
 from typing import Iterator, Mapping, Any
-from sklearn.metrics import mean_absolute_error
+from src.models.metrics import mae
 from src.models.training import make_estimator, fit_sarimax_model
 import numpy as np, pandas as pd
 import json
@@ -9,24 +9,6 @@ import json
 '''
 Defines rolling origin protocol and cross-validation implementation
 '''
-
-EXCLUDE = {"date","sales","internal_events","external_events","holiday"}
-
-def feature_cols(df: pd.DataFrame) -> list[str]:
-     '''
-     Chooses appropriate model input features
-     '''
-     return [c for c in df.columns if (c not in EXCLUDE)]
-
-
-def mae(y_test: pd.Series, 
-        y_pred: np.ndarray) -> float:
-     '''
-     Fold-wise MAE calculation for cross-validation
-     '''
-     return float(mean_absolute_error(y_test, y_pred))
-
-
 
 def rolling_splits(d: pd.Series, 
                    horizon_days: int, 

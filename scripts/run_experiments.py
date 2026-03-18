@@ -1,10 +1,11 @@
 from src.dataset.load_save import load_csv, load_metrics
-from src.analysis.feature_analysis import ablation_plots, uplifts
-from results.save_results import save_results
+from src.analysis.feature_analysis import ablation_plots, uplifts, permutation_values
 from src.analysis.impute_analysis import impute_analysis_plots
 from src.analysis.tuning_analysis import delta_plots, tuning_residuals
-from src.models.tuning import read_configuration, feature_cols
+from src.models.tuning import read_configuration
 from src.models.testing import backtest
+from src.models.training import time_split, make_estimator, feature_cols
+from results.save_results import save_results
 '''
 Module for feature analysis, data preprocessing analysis, and tuning analysis
 Produces figures and metrics regarding featrure importance, missing value imputation impact, and tuning impact
@@ -16,12 +17,6 @@ def run(impute_analysis_path="data/sales_globally_imputed.csv", data_path="data/
     df = load_csv(data_path)
     features = feature_cols(df)
 
-    FEATURE_GROUPS = { # feature groups for ablation experiments
-    "calendar": [c for c in features if not c.startswith(("dow_", "month_"))],
-    "events": [c for c in features if not c.startswith(("internal_events_", "internal_event_", "external_events_", "external_event_"))],
-    "holidays": [c for c in features if not c.startswith(("holidays_", "holidays_"))],
-    "weather": [c for c in features if not c.startswith(("precipitation_", "temperature_", "wind_"))],
-    }
 
     # oos predictions + metrics for impute analysis
     impute_oos_list = []
@@ -31,8 +26,24 @@ def run(impute_analysis_path="data/sales_globally_imputed.csv", data_path="data/
     metrics_baselines = []
     metrics_tuned = []
 
-    # metrics for feature analysis
-    metrics_ablations = {group_name: [] for group_name in FEATURE_GROUPS}
+    # metrics and feature groups for feature analysis
+    ABLATION_FEATURE_GROUPS = { # feature groups for ablation experiments
+    "lags": [c for c in features if c.startswith("sales_lag_")],
+    "rolls": [c for c in features if c.startswith("sales_roll")],
+    "calendar": [c for c in features if c.startswith(("dow_", "month_"))],
+    "events": [c for c in features if c.startswith(("internal_events_", "internal_event_", "external_events_", "external_event_"))],
+    "holidays": [c for c in features if c.startswith(("holidays_", "holidays_"))],
+    "weather": [c for c in features if c.startswith(("precipitation_", "temperature_", "wind_"))],
+    }
+
+    # PERMUTATION_FEATURE_GROUPS = { # feature groups for PFI experiments
+    # "calendar": [c for c in features if not c.startswith(("dow_", "month_"))],
+    # "events": [c for c in features if not c.startswith(("internal_events_", "internal_event_", "external_events_", "external_event_"))],
+    # "holidays": [c for c in features if not c.startswith(("holidays_", "holidays_"))],
+    # "weather": [c for c in features if not c.startswith(("precipitation_", "temperature_", "wind_"))],
+    # }
+
+    metrics_ablations = {group_name: [] for group_name in ABLATION_FEATURE_GROUPS}
 
 
     # re-train, tune, and evaluate models for each experiment
@@ -54,10 +65,20 @@ def run(impute_analysis_path="data/sales_globally_imputed.csv", data_path="data/
         oos_tune = load_csv(f"results/{model}_predictions_tuned.csv")
         tuning_residuals(oos_baseline, oos_tune, model, "tuning_analysis_figures")
 
-        # ablation tests (feature analysis)
-        for group_name, feature_group in FEATURE_GROUPS.items():
+        # feature analysis
+        # grouped ablation experiments
+        for group_name, feature_group in ABLATION_FEATURE_GROUPS.items():
             _, ablation_metrics = backtest(df, model, feature_group, params, target)
             metrics_ablations[group_name].append(ablation_metrics)
+
+        # grouped PFI experiments
+        train, test = time_split(df)
+        X_test, y_test = test[features], test[target]
+        if model == "lasso" or model == "xgboost":
+            permutation_table = permutation_values(model, X_test, y_test)
+            save_results(permutation_table, "permutation_values")
+        else:
+            pass
             
 
 

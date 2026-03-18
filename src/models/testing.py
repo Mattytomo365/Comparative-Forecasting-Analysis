@@ -1,6 +1,6 @@
 import numpy as np, pandas as pd
 from typing import Mapping, Any
-from src.models.training import train_model
+from src.models.training import train_predict
 from src.models.tuning import rolling_splits
 
 def backtest(df: pd.DataFrame, 
@@ -21,7 +21,7 @@ def backtest(df: pd.DataFrame,
 
     for train_mask, test_mask in rolling_splits(dates, horizon_days, min_training_days): # rolling out-of-sample windows
         train, test = df.loc[train_mask], df.loc[test_mask]
-        oos, metrics = train_model(train, test, kind, features, target, params)
+        oos, metrics = train_predict(train, test, kind, features, target, params)
         oos["model"] = kind
         oos["window"] = window
         metrics["model"] = kind

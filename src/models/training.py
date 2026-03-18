@@ -13,6 +13,8 @@ from src.models.metrics import calculate_metrics
 Orchestrates ml model training, tuning, testing, and saving using preprocessed data
 '''
 
+EXCLUDE = {"date","sales","internal_events","external_events","holiday"}
+
 def time_split(df: pd.DataFrame, days: int = 56) -> tuple[pd.DataFrame, pd.DataFrame]:
     '''
     Create a single holdout using time-aware split
@@ -25,6 +27,13 @@ def time_split(df: pd.DataFrame, days: int = 56) -> tuple[pd.DataFrame, pd.DataF
     train = df.iloc[:-days].reset_index(drop=True)
     test = df.iloc[-days:].reset_index(drop=True)
     return train, test
+
+
+def feature_cols(df: pd.DataFrame) -> list[str]:
+     '''
+     Chooses appropriate model input features
+     '''
+     return [c for c in df.columns if (c not in EXCLUDE)]
 
 
 def make_estimator(X_train: pd.DataFrame, 
@@ -90,7 +99,8 @@ def fit_sarimax_model(model: Any) -> tuple[Any, dict[str, Any]]:
     return best_results, best_diagnostics
 
 
-def train_model(train: pd.DataFrame, 
+
+def train_predict(train: pd.DataFrame, 
                 test: pd.DataFrame, 
                 kind: str, 
                 features: list[str], 
@@ -107,7 +117,6 @@ def train_model(train: pd.DataFrame,
     model = make_estimator(X_train, y_train, kind, params)
 
     if kind == "sarimax":
-        # results = model.fit()  # data is passed when model is constructed
         results, diagnostics = fit_sarimax_model(model)  # data is passed when model is constructed
         print(diagnostics)
         drop_cols = [c for c in X_test.columns if c.startswith("sales_lag") or c.startswith("sales_roll")]

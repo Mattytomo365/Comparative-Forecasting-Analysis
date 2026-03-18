@@ -1,9 +1,9 @@
-from src.models.tuning import grid_search, feature_cols, save_configuration
+from src.models.tuning import grid_search, save_configuration
 from src.models.metrics import save_metrics, save_oos
 from src.models.testing import backtest
 from src.dataset.load_save import load_csv
 from src.models.registry import save_manifest
-from src.models.training import time_split
+from src.models.training import time_split, feature_cols
 
 '''
 Module for model tuning, testing, and training functions
