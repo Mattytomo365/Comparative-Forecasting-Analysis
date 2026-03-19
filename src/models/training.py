@@ -108,6 +108,9 @@ def fit_model(train: pd.DataFrame,
     '''
     Fits given model to training dataset
     '''
+    if not features:
+        raise ValueError("fit_model() received an empty feature list")
+
     X_train, y_train = train[features], train[target] # manual split
     X_test, y_test = test[features], test[target]
     model = make_estimator(X_train, y_train, kind, params)

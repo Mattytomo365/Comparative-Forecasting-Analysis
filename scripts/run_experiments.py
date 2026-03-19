@@ -1,5 +1,5 @@
 from src.dataset.load_save import load_csv, load_metrics
-from src.analysis.feature_analysis import ablation_plots, uplifts, permutation_values
+from src.analysis.feature_analysis import ablation_plots, uplifts, permutation_values, permutation_plot
 from src.analysis.impute_analysis import impute_analysis_plots
 from src.analysis.tuning_analysis import delta_plots, tuning_residuals
 from src.models.tuning import read_configuration
@@ -30,19 +30,12 @@ def run(impute_analysis_path="data/sales_globally_imputed.csv", data_path="data/
     ABLATION_FEATURE_GROUPS = { # feature groups for ablation experiments
     "lags": [c for c in features if c.startswith("sales_lag_")],
     "rolls": [c for c in features if c.startswith("sales_roll")],
-    "calendar": [c for c in features if c.startswith(("dow_", "month_"))],
+    "calendar": [c for c in features if c.startswith(("dow_", "month_", "doy_"))],
     "events": [c for c in features if c.startswith(("internal_events_", "internal_event_", "external_events_", "external_event_"))],
-    "holidays": [c for c in features if c.startswith(("holidays_", "holidays_"))],
+    "holidays": [c for c in features if c.startswith("holiday__")],
     "weather": [c for c in features if c.startswith(("precipitation_", "temperature_", "wind_"))],
     }
-
-    # PERMUTATION_FEATURE_GROUPS = { # feature groups for PFI experiments
-    # "calendar": [c for c in features if not c.startswith(("dow_", "month_"))],
-    # "events": [c for c in features if not c.startswith(("internal_events_", "internal_event_", "external_events_", "external_event_"))],
-    # "holidays": [c for c in features if not c.startswith(("holidays_", "holidays_"))],
-    # "weather": [c for c in features if not c.startswith(("precipitation_", "temperature_", "wind_"))],
-    # }
-
+    
     metrics_ablations = {group_name: [] for group_name in ABLATION_FEATURE_GROUPS}
 
 
@@ -68,15 +61,17 @@ def run(impute_analysis_path="data/sales_globally_imputed.csv", data_path="data/
         # feature analysis
         # grouped ablation experiments
         for group_name, feature_group in ABLATION_FEATURE_GROUPS.items():
-            _, ablation_metrics = backtest(df, kind, feature_group, params, target)
+            ablated_features = [c for c in features if c not in feature_group]
+            _, ablation_metrics = backtest(df, kind, ablated_features, params, target)
             metrics_ablations[group_name].append(ablation_metrics)
 
         # grouped PFI experiments
         train, test = time_split(df)
-        fitted_model, _, X_test, y_test = fit_model(train, test, kind, features, target)
+        fitted_model, _, X_test, y_test = fit_model(train, test, kind, features, target, params)
         if kind == "lasso" or kind == "xgboost":
             permutation_table = permutation_values(fitted_model, X_test, y_test)
             save_results(permutation_table, "permutation_values")
+            permutation_plot(permutation_table, "feature_analysis_figures", kind)
         else:
             pass
             
