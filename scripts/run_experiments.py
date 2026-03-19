@@ -4,7 +4,7 @@ from src.analysis.impute_analysis import impute_analysis_plots
 from src.analysis.tuning_analysis import delta_plots, tuning_residuals
 from src.models.tuning import read_configuration
 from src.models.testing import backtest
-from src.models.training import time_split, make_estimator, feature_cols
+from src.models.training import time_split, fit_model, feature_cols
 from results.save_results import save_results
 '''
 Module for feature analysis, data preprocessing analysis, and tuning analysis
@@ -48,34 +48,34 @@ def run(impute_analysis_path="data/sales_globally_imputed.csv", data_path="data/
 
     # re-train, tune, and evaluate models for each experiment
     models = ["lasso", "sarimax", "xgboost"]
-    for model in models:
-        params = read_configuration(model)
+    for kind in models:
+        params = read_configuration(kind)
 
         # impute analysis
-        impute_oos, impute_metrics = backtest(impute_df, model, features, params, target)
+        impute_oos, impute_metrics = backtest(impute_df, kind, features, params, target)
         impute_oos_list.append(impute_oos)
         impute_metrics_list.append(impute_metrics)
 
         # tuning analysis
-        metrics_baseline = load_metrics(f"results/{model}_metrics_baseline.csv")
-        metrics_tune = load_metrics(f"results/{model}_metrics_tuned.csv")
+        metrics_baseline = load_metrics(f"results/{kind}_metrics_baseline.csv")
+        metrics_tune = load_metrics(f"results/{kind}_metrics_tuned.csv")
         metrics_baselines.append(metrics_baseline)
         metrics_tuned.append(metrics_tune)
-        oos_baseline = load_csv(f"results/{model}_predictions_baseline.csv")
-        oos_tune = load_csv(f"results/{model}_predictions_tuned.csv")
-        tuning_residuals(oos_baseline, oos_tune, model, "tuning_analysis_figures")
+        oos_baseline = load_csv(f"results/{kind}_predictions_baseline.csv")
+        oos_tune = load_csv(f"results/{kind}_predictions_tuned.csv")
+        tuning_residuals(oos_baseline, oos_tune, kind, "tuning_analysis_figures")
 
         # feature analysis
         # grouped ablation experiments
         for group_name, feature_group in ABLATION_FEATURE_GROUPS.items():
-            _, ablation_metrics = backtest(df, model, feature_group, params, target)
+            _, ablation_metrics = backtest(df, kind, feature_group, params, target)
             metrics_ablations[group_name].append(ablation_metrics)
 
         # grouped PFI experiments
         train, test = time_split(df)
-        X_test, y_test = test[features], test[target]
-        if model == "lasso" or model == "xgboost":
-            permutation_table = permutation_values(model, X_test, y_test)
+        fitted_model, _, X_test, y_test = fit_model(train, test, kind, features, target)
+        if kind == "lasso" or kind == "xgboost":
+            permutation_table = permutation_values(fitted_model, X_test, y_test)
             save_results(permutation_table, "permutation_values")
         else:
             pass
