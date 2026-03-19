@@ -8,6 +8,7 @@ from statsmodels.tools.sm_exceptions import ConvergenceWarning
 from typing import Mapping, Any
 import warnings
 import pandas as pd
+import numpy as np
 from src.models.metrics import calculate_metrics
 '''
 Orchestrates ml model training, tuning, testing, and saving using preprocessed data
@@ -98,41 +99,72 @@ def fit_sarimax_model(model: Any) -> tuple[Any, dict[str, Any]]:
     best_diagnostics["method"] = "best_llf_fallback"
     return best_results, best_diagnostics
 
-
-
-def train_predict(train: pd.DataFrame, 
+def fit_model(train: pd.DataFrame, 
                 test: pd.DataFrame, 
                 kind: str, 
                 features: list[str], 
                 target: str, 
-                params: Mapping[str, Any]) -> tuple[pd.DataFrame, dict[str, float]]:
+                params: Mapping[str, Any]) -> Any:
     '''
-    Trains and tests specified model with specified parameters for the specified window of data
+    Fits given model to training dataset
     '''
-    if len(features) == 0:
-        raise ValueError("No training features found after applying exclude set")
-
     X_train, y_train = train[features], train[target] # manual split
     X_test, y_test = test[features], test[target]
     model = make_estimator(X_train, y_train, kind, params)
 
     if kind == "sarimax":
-        results, diagnostics = fit_sarimax_model(model)  # data is passed when model is constructed
+        fitted_model, diagnostics = fit_sarimax_model(model)  # data is passed when model is constructed
         print(diagnostics)
-        drop_cols = [c for c in X_test.columns if c.startswith("sales_lag") or c.startswith("sales_roll")]
-        X_test_sarimax = X_test.drop(columns=drop_cols)
-        preds = results.get_forecast(steps=len(X_test_sarimax), exog=X_test_sarimax).predicted_mean
 
     elif kind == "xgboost": # early stopping
-        model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=True)
-        preds = model.predict(X_test)
+        fitted_model = model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=True)
 
     elif kind == "lasso":
-        model.fit(X_train, y_train)
-        preds = model.predict(X_test)
+        fitted_model = model.fit(X_train, y_train)
     
+    return fitted_model, y_train, X_test, y_test
+
+
+def predict_model(X_test: pd.Series,
+                  kind: str,
+                  fitted_model: Any) -> np.ndarray:
+    '''
+    Forms sales predictions based off fitted model passed
+    '''
+    if kind == "sarimax":
+        drop_cols = [c for c in X_test.columns if c.startswith("sales_lag") or c.startswith("sales_roll")]
+        X_test_sarimax = X_test.drop(columns=drop_cols)
+        preds = fitted_model.get_forecast(steps=len(X_test_sarimax), exog=X_test_sarimax).predicted_mean
+
+    elif kind == "xgboost" or kind == "lasso":
+        preds = fitted_model.predict(X_test)
+
+    return preds
+
+def score_model(test: pd.DataFrame,
+                y_train: pd.DataFrame,
+                y_test: pd.Series,
+                preds: np.ndarray) -> tuple[pd.DataFrame, dict[str, float]]:
+    '''
+    Scores model based off predictions provided
+    '''
     oos = test[["date"]].copy() # out-of-sample predictions
     oos["actual data"] = y_test
     oos["forecasted data"] = preds
     metrics = calculate_metrics(y_test, y_train, preds) # calculate metrics for current window predicted
+
     return oos, metrics
+
+def train_predict(train: pd.DataFrame, 
+                test: pd.DataFrame,
+                kind: str,
+                features: list[str], 
+                target: str, 
+                params: Mapping[str, Any]) -> tuple[pd.DataFrame, dict[str, float]]:
+    '''
+    Wraps fitting, predicting, and scoring into one centralised function
+    '''
+    fitted_model, y_train, X_test, y_test = fit_model(train, test, kind, features, target, params)
+    preds = predict_model(X_test, kind, fitted_model)
+
+    return score_model(test, y_train, y_test, preds)

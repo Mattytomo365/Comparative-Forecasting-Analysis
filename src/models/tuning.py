@@ -2,7 +2,7 @@ from sklearn.model_selection import ParameterGrid
 from pathlib import Path
 from typing import Iterator, Mapping, Any
 from src.models.metrics import mae
-from src.models.training import make_estimator, fit_sarimax_model
+from src.models.training import make_estimator, fit_sarimax_model, fit_model, predict_model
 import numpy as np, pandas as pd
 import json
 
@@ -65,26 +65,29 @@ def grid_search(train: pd.DataFrame,
            horizon_days = 28
            min_training_days = 197
            for train_mask, test_mask in rolling_splits(dates, horizon_days, min_training_days): 
-                model = make_estimator(X.loc[train_mask], y.loc[train_mask], kind, params)
-                if kind == "sarimax":
-                     # results = model.fit()  # data is passed when model is constructed
-                     results, diagnostics = fit_sarimax_model(model)
-                     print(diagnostics)
-                     if not diagnostics.get("converged"):
-                          failed_to_converge = True
-                          break
-                     drop_cols = [c for c in X.columns if c.startswith("sales_lag") or c.startswith("sales_roll")] # SARIMAX has built-in exog
-                     X_sarimax = X.drop(columns=drop_cols)
-                     prediction = results.get_forecast(steps=len(X_sarimax.loc[test_mask]), exog=X_sarimax.loc[test_mask]).predicted_mean
+                    #  model = make_estimator(X.loc[train_mask], y.loc[train_mask], kind, params)
+                    #  if kind == "sarimax":
+                    #       # results = model.fit()  # data is passed when model is constructed
+                    #       results, diagnostics = fit_sarimax_model(model)
+                    #       print(diagnostics)
+                    #       if not diagnostics.get("converged"):
+                    #            failed_to_converge = True
+                    #            break
+                    #       drop_cols = [c for c in X.columns if c.startswith("sales_lag") or c.startswith("sales_roll")] # SARIMAX has built-in exog
+                    #       X_sarimax = X.drop(columns=drop_cols)
+                    #       prediction = results.get_forecast(steps=len(X_sarimax.loc[test_mask]), exog=X_sarimax.loc[test_mask]).predicted_mean
 
-                elif kind == "xgboost": # early stopping
-                    model.fit(X.loc[train_mask], y.loc[train_mask], eval_set=[(X.loc[test_mask], y.loc[test_mask])], verbose=False)
-                    prediction = model.predict(X.loc[test_mask])
+                    #  elif kind == "xgboost": # early stopping
+                    #      model.fit(X.loc[train_mask], y.loc[train_mask], eval_set=[(X.loc[test_mask], y.loc[test_mask])], verbose=False)
+                    #      prediction = model.predict(X.loc[test_mask])
 
-                elif kind == "lasso":
-                     model.fit(X.loc[train_mask], y.loc[train_mask])
-                     prediction = model.predict(X.loc[test_mask])
-                fold_scores.append(mae(y.loc[test_mask], prediction))
+                    #  elif kind == "lasso":
+                    #       model.fit(X.loc[train_mask], y.loc[train_mask])
+                    #       prediction = model.predict(X.loc[test_mask])
+                    fitted_model, _, X_test, y_test = fit_model(train.loc[train_mask], train.loc[test_mask], kind, features, target, params)
+                    preds = predict_model(X_test, kind, fitted_model)
+                    fold_scores.append(mae(y_test, preds))
+
            if failed_to_converge:
                 avg = np.inf
            else:
