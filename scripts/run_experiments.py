@@ -39,7 +39,7 @@ def run(impute_analysis_path="data/sales_globally_imputed.csv", data_path="data/
     metrics_ablations = {group_name: [] for group_name in ABLATION_FEATURE_GROUPS}
 
 
-    # re-train, tune, and evaluate models for each experiment
+    # re-train, and evaluate models for each experiment using persisted optimal parameter configurations
     models = ["lasso", "sarimax", "xgboost"]
     for kind in models:
         params = read_configuration(kind)
@@ -78,7 +78,7 @@ def run(impute_analysis_path="data/sales_globally_imputed.csv", data_path="data/
 
 
     # impute analysis figures
-    impute_analysis_plots(impute_oos_list, impute_metrics_list, models)
+    impute_analysis_plots(impute_df, impute_oos_list, impute_metrics_list, models)
 
     # tuning analysis delta plot
     delta_plots(metrics_baselines, metrics_tuned, models, "tuning_analysis_figures")
