@@ -69,13 +69,14 @@ def permutation_plot(permutation_values: pd.DataFrame,
     '''
     # take the top 15 features
     permutation_values = permutation_values.sort_values("mae_increase_mean", ascending=False).head(top_k)
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(12, 6))
     ax.barh(permutation_values["feature"][::-1], permutation_values["mae_increase_mean"][::-1],
             xerr=(permutation_values["mae_increase_std"][::-1]))
     
     ax.set_title(f"PFI mean and std MAE increase ranked bar chart ({model})")
     ax.set_xlabel("Increase in MAE after permutation")
     ax.grid()
+    fig.tight_layout()
     save_figure(fig, f"PFI_plot_{model}", folder)
 
 def uplifts(df: pd.DataFrame, 

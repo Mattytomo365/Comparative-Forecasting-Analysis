@@ -10,7 +10,7 @@ import json
 Defines rolling origin protocol and cross-validation implementation
 '''
 
-def rolling_splits(d: pd.Series, 
+def expanding_splits(d: pd.Series, 
                    horizon_days: int, 
                    min_train_days: int) -> Iterator[tuple[pd.Series, pd.Series]]:
      '''
@@ -64,7 +64,7 @@ def grid_search(train: pd.DataFrame,
            # set suitable min_training_days and horizon_days
            horizon_days = 28
            min_training_days = 197
-           for train_mask, test_mask in rolling_splits(dates, horizon_days, min_training_days): 
+           for train_mask, test_mask in expanding_splits(dates, horizon_days, min_training_days): 
                     fitted_model, _, X_test, y_test = fit_model(train.loc[train_mask], train.loc[test_mask], kind, features, target, params)
                     preds = predict_model(X_test, kind, fitted_model)
                     fold_scores.append(mae(y_test, preds))
