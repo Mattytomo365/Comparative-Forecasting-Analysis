@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from figures.save_figure import save_figure
+from src.analysis.performance_analysis import daily_labels
 
 '''
 Evaluate whether hyperparameter tuning yeilds better forecasting accuracy over default configurations for each model family. 
@@ -17,6 +18,7 @@ def delta_plots(metrics_baselines: list[pd.DataFrame],
     fig, axes = plt.subplots(1, 3, figsize=(14, 4))
 
     for ax, model, baseline_df, tuned_df in zip(axes, models, metrics_baselines, metrics_tuned):
+        # retrieve all mae metrics from all folds on tuned and baseline configurations
         fold_1_baseline = baseline_df.loc[(baseline_df["window"] == 1) & (baseline_df["model"] == model), "MAE"]
         fold_1_tuned = tuned_df.loc[(tuned_df["window"] == 1) & (tuned_df["model"] == model), "MAE"]
         fold_2_baseline = baseline_df.loc[(baseline_df["window"] == 2) & (baseline_df["model"] == model), "MAE"]
@@ -30,16 +32,26 @@ def delta_plots(metrics_baselines: list[pd.DataFrame],
         ax.set_xlabel("fold")
         ax.axhline(0, color="black", linewidth=1)
 
-    fig.suptitle(f"MAE delta bar chart across all models and folds")
+    fig.suptitle("tuning analysis MAE delta bar chart")
     fig.tight_layout()
-    save_figure(fig, f"delta_plot", folder)
+    save_figure(fig, "tuning_delta_plot", folder)
 
-def tuning_analysis_plots(df: pd.DataFrame, 
-                          metrics_baselines: list[pd.DataFrame], 
-                          metrics_tuned: list[pd.DataFrame], 
-                          models: list[str]) -> None:
+def tuning_residuals(oos_baseline: pd.DataFrame, 
+                   oos_tuned: pd.DataFrame, 
+                   model: str, 
+                   folder: str) -> None:
     '''
-    Centralise the plotting of all tuning analysis related visualisations
+    Plot model residuals to analyse accuracy across tuned and baseline configurations
     '''
-    delta_plots(metrics_baselines, metrics_tuned, models, "tuning_analysis_figures")
+    fig, ax = plt.subplots()
+    ax.scatter(oos_baseline["date"], oos_baseline["actual data"] - oos_baseline["forecasted data"], label="baseline") # baseline residuals
+    ax.scatter(oos_tuned["date"], oos_tuned["actual data"] - oos_tuned["forecasted data"], label="tuned") # tuned residuals
+
+    ax.set_title(f"OOS residuals over time - {model}")
+    ax.set_ylabel("actual values - forecasted values")
+    ax.set_xlabel("date")
+    ax.legend()
+    daily_labels(ax)
+    fig.tight_layout(pad=1.2)
+    save_figure(fig, f"tuning_residual_{model}", folder)
 

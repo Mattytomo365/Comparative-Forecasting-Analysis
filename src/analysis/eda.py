@@ -4,7 +4,6 @@ import matplotlib.dates as mdates
 from figures.save_figure import save_figure
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.seasonal import seasonal_decompose
-from statsmodels.tsa.stattools import adfuller
 '''
 User-facing eda on historical data to uncover trends and patterns
 '''
@@ -126,7 +125,9 @@ def fourier_basis_wave(df: pd.DataFrame,
 def seasonal_curve(df: pd.DataFrame, 
                    target: str, 
                    k: int, 
-                   title: str) -> None:
+                   title: str,
+                   file_name: str,
+                   folder: str) -> None:
     '''
     Plot linear combination of baseline waves, visualises what linear models perform on yearly fourier features to understand seasonal shape
     '''
@@ -159,7 +160,7 @@ def seasonal_curve(df: pd.DataFrame,
     ax.grid(True, which="major", linestyle=":", linewidth=0.8, alpha=0.7)
     monthly_labels(ax)
 
-    save_figure(fig, "fourier_seasonal", "eda_figures")
+    save_figure(fig, file_name, folder)
 
 
 
@@ -220,16 +221,6 @@ def decomposition_plot(df: pd.DataFrame, name: str) -> None:
     save_figure(fig, name, "eda_figures")
 
 
-# def perform_adf(df: pd.DataFrame) -> None:
-#     '''
-#     Performs augmented dickey-fuller test
-#     '''
-#     adf_test = adfuller(df["sales"])
-#     print('ADF Statistic: %f' % adf_test[0])
-#     print('p-value: %f' % adf_test[1])
-
-
-
 def plot_all(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     '''
     Centralises execution of all EDA diagnostics
@@ -240,7 +231,7 @@ def plot_all(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     fourier_basis_wave(df, "doy_sin_2", "doy_cos_2", 2, "Yearly Fourier basis 2nd Harmonic", "fourier_basis_yearly_k2") # k=2 adds an extra Fourier harmonic so the model can capture more complex seasonality
 
     # seasonal curves
-    seasonal_curve(df, "sales", 2, "Sales seasonal curve")
+    seasonal_curve(df, "sales", 2, "Sales seasonal curve", "fourier_seasonal", "eda_figures")
     # seasonal_curve(df, "sales", 1, "Sales seasonal curve")
 
     # fourier unit-circle plots
