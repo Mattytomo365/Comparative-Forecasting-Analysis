@@ -187,8 +187,9 @@ def fourier_unit_circle(df: pd.DataFrame,
 def acf_plots(df: pd.DataFrame, 
               col: str, 
               diff: int,
-              name: str, 
-              title: str) -> None:
+              file_name: str, 
+              title: str,
+              folder: str) -> None:
     '''
     Generates autocorrelation plots
     '''
@@ -207,7 +208,7 @@ def acf_plots(df: pd.DataFrame,
     axes[1].set_title(f"ACF {title}")
     axes[2].set_title(f"PACF {title}")
     
-    save_figure(fig, name, "eda_figures")
+    save_figure(fig, file_name, folder)
 
 
 def decomposition_plot(df: pd.DataFrame, name: str) -> None:
@@ -239,8 +240,8 @@ def plot_all(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     fourier_unit_circle(df, "doy_cos", "doy_sin", "Cyclical day-of-year scatter plot", "fourier_unit_daily")
 
     # ACF plots seasonal/non-seasonal
-    acf_plots(df, "sales", 1, "acf_sales", "1st Order Non-Seasonal Differencing")
-    acf_plots(df, "sales", 7, "acf_sales_seasonal", "Seasonal Differencing with Period 7")
+    acf_plots(df, "sales", 1, "acf_sales", "1st Order Non-Seasonal Differencing", "eda_figures")
+    acf_plots(df, "sales", 7, "acf_sales_seasonal", "Seasonal Differencing with Period 7", "eda_figures")
 
     # decomposition plot
     decomposition_plot(df, "seasonal_decompose")
