@@ -21,25 +21,26 @@ def run(raw_path="data/sales_daily.csv", out_path="data/sales_daily_processed.cs
 
 
     # data cleaning
-    train, test = time_split(df)
-    df_med_dow, df_med_global, report = clean_data(df_merged, train)
-    print(df_med_dow)
-    print(report)
+    train, _ = time_split(df)
+    df_mean_dow, df_med_dow, df_med_global = clean_data(df_merged, train)
 
     # data encoding
     schema = fit_onehot_schema(df_med_dow)
     save_onehot_schema(schema, "data/onehot_schema.json")
 
+    df_mean_dow = apply_onehot_schema(df_mean_dow, schema, drop_original=True)
     df_med_dow = apply_onehot_schema(df_med_dow, schema, drop_original=True)
     df_med_global = apply_onehot_schema(df_med_global, schema, drop_original=True)
     print(df_med_dow)
 
     # feature engineering
+    df_mean_dow = add_all_features(df_mean_dow)
     df_med_dow = add_all_features(df_med_dow)
     df_med_global = add_all_features(df_med_global)
     print(df_med_dow)
     df_med_dow.to_csv(out_path, index=False, mode="w")
-    df_med_global.to_csv("data/sales_globally_imputed.csv", index=False, mode="w") # enables imputation analysis
+    df_mean_dow.to_csv("data/sales_dow_mean_imputed.csv", index=False, mode="w") # enables imputation analysis
+    df_med_global.to_csv("data/sales_globally_imputed.csv", index=False, mode="w")
 
 
 

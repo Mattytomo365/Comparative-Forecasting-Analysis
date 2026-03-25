@@ -64,14 +64,20 @@ def fit_missing_imputer(df: pd.DataFrame) -> dict[str, Any]:
         .groupby("day_of_week")["sales"]
         .median()
     )
+    mean_dow = (
+        (out.loc[~m_sales])
+        .groupby("day_of_week")["sales"]
+        .mean()
+    )
 
     return {
         "med_global": float(med_global),
         "med_dow": med_dow.to_dict(),
+        "mean_dow": mean_dow.to_dict(),
     } 
 
 def apply_missing_imputer(df: pd.DataFrame, 
-                          stats: dict[str, Any], strategy: str) -> tuple[pd.DataFrame, dict[str, Any]]:
+                          stats: dict[str, Any], strategy: str) -> pd.DataFrame:
     '''
     Carries out imputation on all data
     Facilitates a separation of concerns between fitting and applying imputation
@@ -92,10 +98,17 @@ def apply_missing_imputer(df: pd.DataFrame,
     if strategy == "med_dow":
         if m_sales.any():
             med_dow = pd.Series(stats["med_dow"])
-            med_global = stats["med_global"]
 
             out.loc[m_sales, "sales"] = (
-                out.loc[m_sales, "day_of_week"].map(med_dow).fillna(med_global).round(0) # maps imputable sales rows through day-specific median using global median as fallback 
+                out.loc[m_sales, "day_of_week"].map(med_dow).round(0) # maps imputable sales rows through day-specific median
+            )
+    
+    if strategy == "mean_dow":
+        if m_sales.any():
+            mean_dow = pd.Series(stats["mean_dow"])
+
+            out.loc[m_sales, "sales"] = (
+                out.loc[m_sales, "day_of_week"].map(mean_dow).round(0)
             )  
 
     elif strategy == "med_global":
@@ -104,16 +117,9 @@ def apply_missing_imputer(df: pd.DataFrame,
 
             out.loc[m_sales, "sales"] = (
                 out.loc[m_sales].fillna(med_global).round(0) # maps imputable sales rows using global median 
-            )
+            )   
 
- 
-
-    summary = { # summry report
-        "imputed_sales_rows": missing_sum,
-        "med_global": float(med_global),
-    }     
-
-    return out.drop(columns=["day_of_week"]), summary
+    return out.drop(columns=["day_of_week"])
 
 
 def handle_duplicates(df: pd.DataFrame) -> pd.DataFrame:
@@ -147,11 +153,16 @@ def clean_data(df: pd.DataFrame, train_df: pd.DataFrame):
             .pipe(coerce_numeric))
     
     stats = fit_missing_imputer(train_df)
-    dow_median_df, report = apply_missing_imputer(df, stats, "med_dow")
-    global_median_df, report = apply_missing_imputer(df, stats, "med_global")
+    dow_mean_df = apply_missing_imputer(df, stats, "mean_dow")
+    dow_median_df = apply_missing_imputer(df, stats, "med_dow")
+    global_median_df = apply_missing_imputer(df, stats, "med_global")
 
-    dow_median_df, global_median_df = (dow_median_df, global_median_df
-            .pipe(handle_duplicates)
-            .pipe(handle_outliers))
+    dow_mean_df = handle_duplicates(dow_mean_df)
+    dow_median_df = handle_duplicates(dow_median_df)
+    global_median_df = handle_duplicates(global_median_df)
+
+    dow_mean_df = handle_outliers(dow_mean_df)
+    dow_median_df = handle_outliers(dow_median_df)
+    global_median_df = handle_outliers(global_median_df)
     
-    return dow_median_df, global_median_df, report
+    return dow_mean_df, dow_median_df, global_median_df

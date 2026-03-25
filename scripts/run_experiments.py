@@ -1,5 +1,5 @@
 from src.dataset.load_save import load_csv, load_metrics
-from src.analysis.feature_analysis import ablation_plots, uplifts, permutation_values, permutation_plot
+from src.analysis.feature_analysis import ablation_plots, permutation_values, permutation_plot
 from src.analysis.impute_analysis import impute_analysis_plots
 from src.analysis.tuning_analysis import delta_plots, tuning_residuals
 from src.models.tuning import read_configuration
@@ -11,16 +11,19 @@ Module for feature analysis, data preprocessing analysis, and tuning analysis
 Produces figures and metrics regarding featrure importance, missing value imputation impact, and tuning impact
 '''
 
-def run(impute_analysis_path="data/sales_globally_imputed.csv", data_path="data/sales_daily_processed.csv", target="sales"):
+def run(data_path="data/sales_daily_processed.csv", target="sales"):
     # OOS, metrics, and feature configuration set up
-    impute_df = load_csv(impute_analysis_path)
+    global_median_df = load_csv("data/sales_globally_imputed.csv")
+    dow_mean_df = load_csv("data/sales_dow_mean_imputed.csv")
     df = load_csv(data_path)
     features = feature_cols(df)
 
 
     # oos predictions + metrics for impute analysis
-    impute_oos_list = []
-    impute_metrics_list = []
+    median_oos_list = []
+    mean_oos_list = []
+    median_metrics_list = []
+    mean_metrics_list = []
 
     # oos predictions + metrics for tuning analysis
     metrics_baselines = []
@@ -28,8 +31,6 @@ def run(impute_analysis_path="data/sales_globally_imputed.csv", data_path="data/
 
     # metrics and feature groups for feature analysis
     ABLATION_FEATURE_GROUPS = { # feature groups for ablation experiments
-    "lags": [c for c in features if c.startswith("sales_lag_")],
-    "rolls": [c for c in features if c.startswith("sales_roll")],
     "calendar": [c for c in features if c.startswith(("dow_", "month_", "doy_"))],
     "events": [c for c in features if c.startswith(("internal_events_", "internal_event_", "external_events_", "external_event_"))],
     "holidays": [c for c in features if c.startswith("holiday__")],
@@ -45,11 +46,15 @@ def run(impute_analysis_path="data/sales_globally_imputed.csv", data_path="data/
         params = read_configuration(kind)
 
         # impute analysis
-        impute_oos, impute_metrics = backtest(impute_df, kind, features, params, target)
-        impute_oos_list.append(impute_oos)
-        impute_metrics_list.append(impute_metrics)
+        median_oos, median_metrics = backtest(global_median_df, kind, features, params, target)
+        median_oos_list.append(median_oos)
+        median_metrics_list.append(median_metrics)
 
-        # tuning analysis
+        mean_oos, mean_metrics = backtest(dow_mean_df, kind, features, params, target)
+        mean_oos_list.append(mean_oos)
+        mean_metrics_list.append(mean_metrics)
+
+        # metrics and oos predictions for tuning and feature analysis
         metrics_baseline = load_metrics(f"results/{kind}_metrics_baseline.csv")
         metrics_tune = load_metrics(f"results/{kind}_metrics_tuned.csv")
         metrics_baselines.append(metrics_baseline)
@@ -78,7 +83,7 @@ def run(impute_analysis_path="data/sales_globally_imputed.csv", data_path="data/
 
 
     # impute analysis figures
-    impute_analysis_plots(impute_df, impute_oos_list, impute_metrics_list, models)
+    impute_analysis_plots(global_median_df, dow_mean_df, median_oos_list, median_metrics_list, mean_oos_list, mean_metrics_list, models)
 
     # tuning analysis delta plot
     delta_plots(metrics_baselines, metrics_tuned, models, "tuning_analysis_figures")
@@ -86,9 +91,6 @@ def run(impute_analysis_path="data/sales_globally_imputed.csv", data_path="data/
     # feature analysis results and figures
     for group_name, group_metrics in metrics_ablations.items():
         ablation_plots(metrics_tuned, group_metrics, models, "feature_analysis_figures", group_name)
-
-    # uplifts = uplifts(df)
-    # save_results(uplifts, "sales uplifts")
 
 if __name__ == "__main__":
     run()
