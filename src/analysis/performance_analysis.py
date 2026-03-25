@@ -69,7 +69,8 @@ def forecast_plot(oos_list: list[pd.DataFrame],
 
 def metrics_plots(metrics_list: list[pd.DataFrame], 
                   models: list[str], 
-                  stage: str, 
+                  title: str,
+                  file_name: str, 
                   folder: str) -> None:
     '''
     Plot baseline and tuned evaluation metrics against eachother for each model
@@ -97,14 +98,15 @@ def metrics_plots(metrics_list: list[pd.DataFrame],
         ax.set_xlabel("model")
         ax.legend()
 
-    fig.suptitle(f"Metrics for all {stage} models across both folds")
+    fig.suptitle(title)
     fig.tight_layout()
-    save_figure(fig, f"metrics_plot_{stage}", folder)
+    save_figure(fig, file_name, folder)
 
 
 def absolute_error_plot(oos_list: list[pd.DataFrame], 
                         models: list[str], 
-                        stage: str, 
+                        title: str,
+                        file_name: str, 
                         folder: str) -> None:
     '''
     Plot absolute error over time for visualisation of magnitude
@@ -118,13 +120,15 @@ def absolute_error_plot(oos_list: list[pd.DataFrame],
     ax.set_ylabel("magnitude")
     ax.set_xlabel("date")
     ax.legend()
-    ax.set_title(f"Absolute error over time ({stage})")
+    ax.set_title(title)
     daily_labels(ax)
     fig.tight_layout(pad=1.2)
-    save_figure(fig, f"absolute_error_{stage}", folder)
+    save_figure(fig, file_name, folder)
 
 
-def ranked_summary(oos_list: list[pd.DataFrame], models: list[str], primary: str = "mae") -> pd.DataFrame:
+def ranked_summary(oos_list: list[pd.DataFrame], 
+                   models: list[str], 
+                   primary: str = "mae") -> pd.DataFrame:
     '''
     Generate a ranked table for summary of findings
     '''
@@ -136,13 +140,11 @@ def ranked_summary(oos_list: list[pd.DataFrame], models: list[str], primary: str
 
         mae = float(mean_absolute_error(y_test, y_pred))
         rmse = float(root_mean_squared_error(y_test, y_pred))
-        # me = float(np.mean(y_true - y_pred))  # bias
         
         rows.append({
             "model": model,
             "mae": mae,
             "rmse": rmse,
-            #"me": me
         })
 
     summary = pd.DataFrame(rows)
@@ -151,16 +153,19 @@ def ranked_summary(oos_list: list[pd.DataFrame], models: list[str], primary: str
 
     return summary.sort_values(["rank", "model"]).reset_index(drop=True)
 
-def ranked_table(summary: pd.DataFrame, stage: str, folder: str) -> None:
+def ranked_table(summary: pd.DataFrame, 
+                 title: str,
+                 file_name: str, 
+                 folder: str) -> None:
     '''
     Visualises ranked table
     ''' 
     fig, ax = plt.subplots()
     ax.axis("off")
     ax.table(cellText=summary.values, colLabels=summary.columns, loc="center")
-    ax.set_title(f"Ranked metrics table ({stage})")
+    ax.set_title(title)
     fig.tight_layout()
-    save_figure(fig, f"metrics_table_{stage}", folder)
+    save_figure(fig, file_name, folder)
 
 
 def plot_all() -> None:
@@ -190,15 +195,15 @@ def plot_all() -> None:
     forecast_plot(oos_baselines, models, "baselines", "evaluation_figures")
     forecast_plot(oos_tuned, models, "tuned", "evaluation_figures")
 
-    metrics_plots(metrics_baselines, models, "baseline", "evaluation_figures")
-    metrics_plots(metrics_tuned, models, "tuned", "evaluation_figures")
+    metrics_plots(metrics_baselines, models, "Metrics for all baseline models", "metrics_plot_baseline", "evaluation_figures")
+    metrics_plots(metrics_tuned, models, "Metrics for all tuned models", "metrics_plot_tuned", "evaluation_figures")
 
-    absolute_error_plot(oos_baselines, models, "baselines", "evaluation_figures")
-    absolute_error_plot(oos_tuned, models, "tuned", "evaluation_figures")
+    absolute_error_plot(oos_baselines, models, "Absolute error over time for all baseline models", "absolute_error_baseline", "evaluation_figures")
+    absolute_error_plot(oos_tuned, models, "Absolute error over time for all tuned models", "absolute_error_tuned", "evaluation_figures")
 
     baselines_ranked = ranked_summary(oos_baselines, models)
     tuned_ranked = ranked_summary(oos_tuned, models)
 
-    ranked_table(baselines_ranked, "baselines", "evaluation_figures")
-    ranked_table(tuned_ranked, "tuned", "evaluation_figures")
+    ranked_table(baselines_ranked, "Ranked metrics table (baselines)", "metrics_table_baseline", "evaluation_figures")
+    ranked_table(tuned_ranked, "Ranked metrics table (tuned)", "metrics_table_tuned", "evaluation_figures")
 
