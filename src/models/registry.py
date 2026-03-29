@@ -15,7 +15,6 @@ registry_dir = Path("models")
 def save_manifest(kind: str, 
                   stage: str, 
                   target: str, 
-                  features: list[str], 
                   params: Mapping[str, Any], 
                   oos_path: Path, 
                   metrics_path: Path) -> None: 
@@ -27,7 +26,6 @@ def save_manifest(kind: str,
         "stage": stage, # baseline or tuned
         "target": target,
         "parameters": params,
-        "features": features,
         "artifacts":{
             "oos": {"path": str(oos_path)},
             "metrics": {"path": str(metrics_path)},
@@ -36,19 +34,3 @@ def save_manifest(kind: str,
     }
     with open((f"model_info/{kind}_{stage}.manifest.json"), "w") as f:
         json.dump(manifest, f, indent=2)
-
-
-
-def read_manifest(kind: str, stage: str) -> dict[str, Any]:
-    '''
-    Reads manifest JSON file - used for displaying model information to user
-    '''
-    path = f"model_info/{kind}_{stage}.manifest.json"
-
-    if not path.exists():
-        raise ModelNotFound(f"Manifest not found")
-    try:
-        data = json.loads(path.read_text())
-    except json.JSONDecodeError as e: # if deserialised data is invalid
-        raise ManifestError(f"Invalid JSON in {path}: {e}") from e
-    return data

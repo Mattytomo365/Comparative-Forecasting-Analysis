@@ -11,8 +11,7 @@ Module for model tuning, testing, and training functions
 
 def run(data_path="data/sales_daily_processed.csv", target="sales"):
     df = load_csv(data_path)
-    features = feature_cols(df)
-    train, test = time_split(df) # simple holdout splitter
+    train, _ = time_split(df) # simple holdout splitter
     
 
     # train on suitable default parameter combinations first to give performance baselines
@@ -21,12 +20,12 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
         ("sarimax", {"order": (0, 1, 1), "seasonal_order": (0, 1, 1, 7)}), # SARIMA
         ("xgboost", {"max_depth": 4, "learning_rate": 0.05}) # XGBoost
     ]:
-        oos, metrics = backtest(df, kind, features, default_params, target)
+        oos, metrics = backtest(df, kind, default_params, target)
         oos.name = f"{kind}_predictions_baseline"
         metrics.name = f"{kind}_metrics_baseline"
         oos_path = save_oos(oos, oos.name)
         metrics_path = save_metrics(metrics, metrics.name)
-        save_manifest(kind, "baseline", target, features, default_params, oos_path, metrics_path) # baseline model manifests
+        save_manifest(kind, "baseline", target, default_params, oos_path, metrics_path) # baseline model manifests
 
     # define param grids for each model type
     Grids = {
@@ -51,17 +50,17 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
 
     for kind, grid in Grids.items():
         # tune on train only
-        best = grid_search(train, features, target, kind, param_grid=grid)
+        best = grid_search(train, target, kind, param_grid=grid)
         save_configuration(best)
         print("Best CV: ", best)
 
         # refit on train with best hyper-parameters
-        oos, metrics = backtest(df, kind, features, best["params"], target)
+        oos, metrics = backtest(df, kind, best["params"], target)
         oos.name = f"{kind}_predictions_tuned"
         metrics.name = f"{kind}_metrics_tuned"
         oos_path = save_oos(oos, oos.name)
         metrics_path = save_metrics(metrics, metrics.name)
-        save_manifest(kind, "tuned", target, features, best["params"], oos_path, metrics_path) # tuned model manifests
+        save_manifest(kind, "tuned", target, best["params"], oos_path, metrics_path) # tuned model manifests
 
         print("Model saved")
 

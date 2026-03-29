@@ -20,13 +20,6 @@ def calculate_metrics(y_test: pd.Series,
 
     return {"MAE": mae, "MASE": mase, "RMSE": rmse}
 
-def mae(y_test: pd.Series, 
-        y_pred: np.ndarray) -> float:
-     '''
-     Fold-wise MAE calculation for cross-validation
-     '''
-     return float(mean_absolute_error(y_test, y_pred))
-
 
 def save_oos(oos: pd.DataFrame, name: str) -> str:
     '''

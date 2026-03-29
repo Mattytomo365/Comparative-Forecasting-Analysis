@@ -1,8 +1,7 @@
 from sklearn.model_selection import ParameterGrid
 from pathlib import Path
 from typing import Iterator, Mapping, Any
-from src.models.metrics import mae
-from src.models.training import make_estimator, fit_sarimax_model, fit_model, predict_model
+from src.models.training import train_predict
 import numpy as np, pandas as pd
 import json
 
@@ -10,16 +9,16 @@ import json
 Defines rolling origin protocol and cross-validation implementation
 '''
 
-def expanding_splits(d: pd.Series, 
+def expanding_splits(dates: pd.Series, 
                    horizon_days: int, 
                    min_train_days: int) -> Iterator[tuple[pd.Series, pd.Series]]:
      '''
      Splits data over specified min training and horizon days using a moving train/test set
      '''
-     last_date = d.iloc[-1]
+     last_date = dates.iloc[-1]
 
      # first origin with enough history
-     first_train_end = d.iloc[0] + pd.Timedelta(days=min_train_days - 1)
+     first_train_end = dates.iloc[0] + pd.Timedelta(days=min_train_days - 1)
      first_test_start = first_train_end + pd.Timedelta(days=1)
 
      span_days = (last_date - first_test_start).days # exclude initial window to ensure sufficient data
@@ -34,8 +33,8 @@ def expanding_splits(d: pd.Series,
           test_end = test_start + pd.Timedelta(days=horizon_days - 1) # prevent overlapping folds
           train_end = test_start - pd.Timedelta(days=1)
 
-          train_mask = d <= train_end # boolean mask
-          test_mask = d.between(test_start, test_end)
+          train_mask = dates <= train_end # boolean mask
+          test_mask = dates.between(test_start, test_end)
 
           if train_mask.sum() == 0 or test_mask.sum() == 0:
                raise ValueError("Train or test split has zero rows")
@@ -44,7 +43,6 @@ def expanding_splits(d: pd.Series,
 
 
 def grid_search(train: pd.DataFrame, 
-                features: list[str], 
                 target: str, 
                 kind: str, 
                 param_grid: Mapping[str, list[Any]]) -> dict[str, Any]:
@@ -53,28 +51,25 @@ def grid_search(train: pd.DataFrame,
      '''
      train = train.sort_values("date").reset_index(drop=True)
      dates = pd.to_datetime(train["date"])
-     X = train[features]
-     y = train[target]
      best_score, best_params = np.inf, None
 
      for params in ParameterGrid(param_grid):
-           fold_scores = []
-           failed_to_converge = False
-           # cycle through folds
-           # set suitable min_training_days and horizon_days
-           horizon_days = 28
-           min_training_days = 197
-           for train_mask, test_mask in expanding_splits(dates, horizon_days, min_training_days): 
-                    fitted_model, _, X_test, y_test = fit_model(train.loc[train_mask], train.loc[test_mask], kind, features, target, params)
-                    preds = predict_model(X_test, kind, fitted_model)
-                    fold_scores.append(mae(y_test, preds))
+          fold_scores = []
+          # cycle through folds
+          # set suitable min_training_days and horizon_days
+          horizon_days = 28
+          min_training_days = 197
+          
+          for train_mask, test_mask in expanding_splits(dates, horizon_days, min_training_days):
+               train_fold = train.loc[train_mask].copy()
+               test_fold = train.loc[test_mask].copy()
+               _, metrics = train_predict(train_fold, test_fold, kind, target, params)
+               fold_scores.append(metrics["MAE"])
 
-           if failed_to_converge:
-                avg = np.inf
-           else:
-                avg = float(np.mean(fold_scores))
-           if avg < best_score:
-                best_score, best_params = avg, params
+          avg = float(np.mean(fold_scores))
+
+          if avg < best_score:
+               best_score, best_params = avg, params
                
      return {"kind": kind, "score": best_score, "params": best_params}
 

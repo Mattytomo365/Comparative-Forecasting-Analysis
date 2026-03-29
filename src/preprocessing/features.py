@@ -3,6 +3,8 @@ import numpy as np, pandas as pd
 Engineering additional features to produce more meaningful data
 '''
 
+LAGS = (1, 7, 14, 21)
+ROLL_WINDOWS = (7, 14, 21)
 
 def add_cyclical(df: pd.DataFrame) -> pd.DataFrame:
     '''
@@ -28,39 +30,37 @@ def add_cyclical(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def add_lags(df: pd.DataFrame) -> pd.DataFrame:
+def add_train_lag_roll(df: pd.DataFrame) -> pd.DataFrame:
     '''
-    Adds lags to capture short-term momentum and weekday repitition
+    Adds bulk lags and rolling statistics from training data supplied
+    Captures short-term dynamics of sales data
     '''
-    lags = (1, 7, 14, 21)
     out = df.copy()
 
-    for lag in lags:
-        out[f"sales_lag_{lag}"] = out["sales"].shift(lag).fillna("")
-    return out
-
-
-def add_rolls(df: pd.DataFrame) -> pd.DataFrame:
-    '''
-    Adds rolling statistics to summarise information over a specific period of time, giving a broader perspective
-    '''
-    windows = (7, 14, 21) # weekly windows
-    out = df.copy()
+    for lag in LAGS:
+        out[f"sales_lag_{lag}"] = out["sales"].shift(lag).fillna(np.nan)
 
     past = out["sales"].shift(1) # past only
-    for window in windows:
+    for window in ROLL_WINDOWS:
         out[f"sales_roll_mean_{window}"] = past.rolling(window).mean()
         out[f"sales_roll_std_{window}"] = past.rolling(window).std()
+
     return out
-    
 
+def add_test_lag_roll(history: pd.Series) -> dict[str, float]:
+    '''
+    Adds lags and rolling statistics for singular holdout row supplied
+    Provides short-term dynamics of predicted sales without leaking actual holdout sales values
+    '''
+    vals: dict[str, float] = {}
 
-def add_all_features(df: pd.DataFrame) -> pd.DataFrame:
-    '''
-    Bringing all feature engineering methods together
-    '''
-    df = (df
-        .pipe(add_cyclical)
-        .pipe(add_lags)
-        .pipe(add_rolls))
-    return df
+    for lag in LAGS:
+        # look backwards from the end of available history
+        vals[f"sales_lag_{lag}"] = history.iloc[-lag] if len(history) >= lag else np.nan
+
+    for window in ROLL_WINDOWS:
+        w = history.iloc[-window:]
+        vals[f"sales_roll_mean_{window}"] = w.mean() if len(w) == window else np.nan
+        vals[f"sales_roll_std_{window}"] = w.std() if len(w) == window else np.nan
+
+    return vals

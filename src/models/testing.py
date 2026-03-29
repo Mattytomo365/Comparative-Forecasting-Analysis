@@ -4,8 +4,7 @@ from src.models.training import train_predict
 from src.models.tuning import expanding_splits
 
 def backtest(df: pd.DataFrame, 
-             kind: str, 
-             features: list[str], 
+             kind: str,
              params: Mapping[str, Any], 
              target: str) -> tuple[pd.DataFrame, pd.DataFrame]:
     '''
@@ -22,7 +21,7 @@ def backtest(df: pd.DataFrame,
     # expanding out-of-sample windows
     for train_mask, test_mask in expanding_splits(dates, horizon_days, min_training_days): 
         train, test = df.loc[train_mask], df.loc[test_mask]
-        oos, metrics = train_predict(train, test, kind, features, target, params)
+        oos, metrics = train_predict(train, test, kind, target, params)
         oos["model"] = kind
         oos["window"] = window
         metrics["model"] = kind
