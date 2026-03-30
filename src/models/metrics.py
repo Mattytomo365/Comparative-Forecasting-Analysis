@@ -16,7 +16,7 @@ def calculate_metrics(y_test: pd.Series,
     # root mean squared error
     rmse = float(root_mean_squared_error(y_test, y_pred))
     # mean absolute scaled error
-    mase = mean_absolute_scaled_error(y_test, y_pred, y_train=y_train)
+    mase = float(mean_absolute_scaled_error(y_test, y_pred, y_train=y_train, sp=7)) # weekly seasonal naive benchmark
 
     return {"MAE": mae, "MASE": mase, "RMSE": rmse}
 
