@@ -1,5 +1,5 @@
 from src.dataset.load_save import load_csv, load_metrics
-from src.analysis.feature_analysis import ablation_plots, permutation_values, permutation_plot
+from src.analysis.feature_analysis import ablation_plots, permutation_values, permutation_plot, permutation_preparation
 from src.analysis.impute_analysis import impute_analysis_plots
 from src.analysis.tuning_analysis import delta_plots, tuning_residuals
 from src.models.tuning import read_configuration
@@ -46,11 +46,11 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
         params = read_configuration(kind)
 
         # impute analysis
-        median_oos, median_metrics = backtest(global_median_df, kind, features, params, target)
+        median_oos, median_metrics = backtest(global_median_df, kind, target, params)
         median_oos_list.append(median_oos)
         median_metrics_list.append(median_metrics)
 
-        mean_oos, mean_metrics = backtest(dow_mean_df, kind, features, params, target)
+        mean_oos, mean_metrics = backtest(dow_mean_df, kind, target, params)
         mean_oos_list.append(mean_oos)
         mean_metrics_list.append(mean_metrics)
 
@@ -66,14 +66,15 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
         # feature analysis
         # grouped ablation experiments
         for group_name, feature_group in ABLATION_FEATURE_GROUPS.items():
-            ablated_features = [c for c in features if c not in feature_group]
-            _, ablation_metrics = backtest(df, kind, ablated_features, params, target)
+            df_ablated = df.drop(columns=feature_group)
+            _, ablation_metrics = backtest(df_ablated, kind, target, params)
             metrics_ablations[group_name].append(ablation_metrics)
 
         # grouped PFI experiments
         train, test = time_split(df)
-        fitted_model, _, X_test, y_test = fit_model(train, test, kind, features, target, params)
+        fitted_model, _ = fit_model(train, kind, features, target, params)
         if kind == "lasso" or kind == "xgboost":
+            fitted_model, X_test, y_test = permutation_preparation(train, test, kind, target, params)
             permutation_table = permutation_values(fitted_model, X_test, y_test)
             save_results(permutation_table, "permutation_values")
             permutation_plot(permutation_table, "feature_analysis_figures", kind)

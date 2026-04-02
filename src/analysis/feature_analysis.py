@@ -1,8 +1,10 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from figures.save_figure import save_figure
+from src.preprocessing.features import add_test_lag_roll, add_train_lag_roll
+from src.models.training import feature_cols, fit_model
 from sklearn.inspection import permutation_importance
-from typing import Any
+from typing import Any, Mapping
 '''
 Explores uplift and feature importance metrics over different periods for different metrics
 '''
@@ -38,6 +40,32 @@ def ablation_plots(metrics_tuned: list[pd.DataFrame],
     fig.suptitle(f"{group_name} ablation MAE delta bar chart")
     fig.tight_layout()
     save_figure(fig, f"{group_name}_delta_plot", folder)
+
+def permutation_preparation(train: pd.DataFrame, 
+                     test: pd.DataFrame, 
+                     kind: str, 
+                     target: str, 
+                     params: Mapping[str, Any]):
+    '''
+    Ensures lag-aware models are fitted for PFI experiments
+    '''
+    train_feat = add_train_lag_roll(train.copy())
+    features = feature_cols(train_feat)
+    fitted_model, _ = fit_model(train_feat, kind, features, target, params)
+
+    history = train.sort_values("date").set_index("date")[target].copy()
+    rows = []
+
+    for _, row in test.iterrows():
+        row_dict = row.to_dict()
+        row_dict.update(add_test_lag_roll(history))
+        rows.append(pd.DataFrame([row_dict])[features])
+        history = pd.concat([history, pd.Series([row[target]])], ignore_index=True)
+
+    X_test = pd.concat(rows, ignore_index=True)
+    y_test = test[target].reset_index(drop=True)
+    return fitted_model, X_test, y_test
+
 
 def permutation_values(fitted_model: Any,
                        X_test: pd.Series,
