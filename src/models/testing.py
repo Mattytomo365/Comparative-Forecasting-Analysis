@@ -2,12 +2,12 @@ import numpy as np, pandas as pd
 from typing import Mapping, Any
 from src.models.training import train_predict
 from src.models.tuning import expanding_splits
-from src.models.metrics import calculate_metrics, save_metrics, save_oos
+from src.models.metrics import calculate_metrics
 
 def backtest(df: pd.DataFrame, 
              kind: str,
-             params: Mapping[str, Any], 
-             target: str) -> tuple[pd.DataFrame, pd.DataFrame]:
+             target: str,
+             params: Mapping[str, Any] | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
     '''
     Orchestrate expanding-window backtesting using established outer windows
     '''
@@ -22,7 +22,13 @@ def backtest(df: pd.DataFrame,
     # expanding out-of-sample windows
     for train_mask, test_mask in expanding_splits(dates, horizon_days, min_training_days): 
         train, test = df.loc[train_mask], df.loc[test_mask]
-        oos, metrics = train_predict(train, test, kind, target, params)
+
+        if kind == "naive":
+            oos, metrics = naive_forecast(train[target], test[target], test)
+ 
+        else:
+            oos, metrics = train_predict(train, test, kind, target, params)
+
         oos["model"] = kind
         oos["window"] = window
         metrics["model"] = kind
@@ -36,29 +42,21 @@ def backtest(df: pd.DataFrame,
 
 def naive_forecast(y_train: pd.Series, 
                    y_test: pd.Series, 
-                   kind: str, 
-                   test: pd.DataFrame) -> None:
+                   test: pd.DataFrame,
+                   kind: str = "naive") -> tuple[pd.DataFrame, dict[str, float]]:
     '''
-    Implements seasonal naive baseline for forecasting performance benchmark
+    Implements weekly seasonal naive baseline for benchmarking predictive performance
     '''
-    y_train = np.asarray(y_train)
-    y_test  = np.asarray(y_test)
-
-    # OR repeat last 7 days pattern across horizon:
+    # repeat last 7 days pattern across horizon
     pattern = y_train.iloc[-7:].to_numpy()
     preds = np.resize(pattern, len(y_test))
 
     oos = test[["date"]].copy()
-    oos["Actual data"] = y_test
-    oos["Forecasted data"] = preds
+    oos["actual data"] = y_test
+    oos["forecasted data"] = preds
     oos["model"] = kind
 
     metrics = calculate_metrics(y_test, y_train, preds)
-    metrics["model"] = kind
-    metrics = pd.DataFrame([metrics])
 
-    oos.name = f"{kind}_predictions_baseline"
-    metrics.name = f"{kind}_metrics_baseline"
+    return oos, metrics
 
-    save_oos(oos, oos.name)
-    save_metrics(metrics, metrics.name)

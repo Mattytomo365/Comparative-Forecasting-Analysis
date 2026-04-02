@@ -172,37 +172,48 @@ def plot_all() -> None:
     '''
     Centralises execution of all comparative experiments
     '''
-    models = ["lasso", "sarimax", "xgboost"]
+    primary_models = ["lasso", "sarimax", "xgboost"]
+    all_models = ["naive", "lasso", "sarimax", "xgboost"]
     oos_baselines = []
     oos_tuned = []
     metrics_baselines = []
     metrics_tuned = []
 
-    for model in models:
+    for model in all_models:
+        if model == "naive":
+            oos_naive = load_csv(f"results/{model}_predictions_baseline.csv")
+            metrics_naive = load_metrics(f"results/{model}_metrics_baseline.csv")
+            oos_baselines.append(oos_naive)
+            oos_tuned.append(oos_naive)
+            metrics_baselines.append(metrics_naive)
+            metrics_tuned.append(metrics_naive)
+        
+        else:
+            oos_baseline = load_csv(f"results/{model}_predictions_baseline.csv")
+            oos_baselines.append(oos_baseline)
+            oos_tune = load_csv(f"results/{model}_predictions_tuned.csv")
+            oos_tuned.append(oos_tune)
 
-        oos_baseline = load_csv(f"results/{model}_predictions_baseline.csv")
-        oos_tune = load_csv(f"results/{model}_predictions_tuned.csv")
-        oos_baselines.append(oos_baseline)
-        oos_tuned.append(oos_tune)
-        performance_residuals(oos_baseline, oos_tune, model, "evaluation_figures")
+            metrics_baseline = load_metrics(f"results/{model}_metrics_baseline.csv")
+            metrics_baselines.append(metrics_baseline)
+            metrics_tune = load_metrics(f"results/{model}_metrics_tuned.csv")
+            metrics_tuned.append(metrics_tune)
+            
+            performance_residuals(oos_baseline, oos_tune, model, "evaluation_figures")
 
-        metrics_baseline = load_metrics(f"results/{model}_metrics_baseline.csv")
-        metrics_tune = load_metrics(f"results/{model}_metrics_tuned.csv")
-        metrics_baselines.append(metrics_baseline)
-        metrics_tuned.append(metrics_tune)
+    
 
+    forecast_plot(oos_baselines, all_models, "baselines", "evaluation_figures")
+    forecast_plot(oos_tuned, all_models, "tuned", "evaluation_figures")
 
-    forecast_plot(oos_baselines, models, "baselines", "evaluation_figures")
-    forecast_plot(oos_tuned, models, "tuned", "evaluation_figures")
+    metrics_plots(metrics_baselines, all_models, "Metrics for all baseline models", "metrics_plot_baseline", "evaluation_figures")
+    metrics_plots(metrics_tuned, all_models, "Metrics for all tuned models", "metrics_plot_tuned", "evaluation_figures")
 
-    metrics_plots(metrics_baselines, models, "Metrics for all baseline models", "metrics_plot_baseline", "evaluation_figures")
-    metrics_plots(metrics_tuned, models, "Metrics for all tuned models", "metrics_plot_tuned", "evaluation_figures")
+    absolute_error_plot(oos_baselines, all_models, "Absolute error over time for all baseline models", "absolute_error_baseline", "evaluation_figures")
+    absolute_error_plot(oos_tuned, all_models, "Absolute error over time for all tuned models", "absolute_error_tuned", "evaluation_figures")
 
-    absolute_error_plot(oos_baselines, models, "Absolute error over time for all baseline models", "absolute_error_baseline", "evaluation_figures")
-    absolute_error_plot(oos_tuned, models, "Absolute error over time for all tuned models", "absolute_error_tuned", "evaluation_figures")
-
-    baselines_ranked = ranked_summary(oos_baselines, models)
-    tuned_ranked = ranked_summary(oos_tuned, models)
+    baselines_ranked = ranked_summary(oos_baselines, all_models)
+    tuned_ranked = ranked_summary(oos_tuned, all_models)
 
     ranked_table(baselines_ranked, "Ranked metrics table (baselines)", "metrics_table_baseline", "evaluation_figures")
     ranked_table(tuned_ranked, "Ranked metrics table (tuned)", "metrics_table_tuned", "evaluation_figures")

@@ -16,11 +16,12 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
 
     # train on suitable default parameter combinations first to give performance baselines
     for kind, default_params in[
+        ("naive", {}), # Naive
         ("lasso", {"alpha": 1.0}), # Lasso
         ("sarimax", {"order": (0, 1, 1), "seasonal_order": (0, 1, 1, 7)}), # SARIMA
         ("xgboost", {"max_depth": 4, "learning_rate": 0.05}) # XGBoost
     ]:
-        oos, metrics = backtest(df, kind, default_params, target)
+        oos, metrics = backtest(df, kind, target, default_params)
         oos.name = f"{kind}_predictions_baseline"
         metrics.name = f"{kind}_metrics_baseline"
         oos_path = save_oos(oos, oos.name)
@@ -55,7 +56,7 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
         print("Best CV: ", best)
 
         # refit on train with best hyper-parameters
-        oos, metrics = backtest(df, kind, best["params"], target)
+        oos, metrics = backtest(df, kind, target, best["params"])
         oos.name = f"{kind}_predictions_tuned"
         metrics.name = f"{kind}_metrics_tuned"
         oos_path = save_oos(oos, oos.name)
