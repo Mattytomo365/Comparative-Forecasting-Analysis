@@ -72,11 +72,10 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
 
         # grouped PFI experiments
         train, test = time_split(df)
-        fitted_model, _ = fit_model(train, kind, features, target, params)
         if kind == "lasso" or kind == "xgboost":
             fitted_model, X_test, y_test = permutation_preparation(train, test, kind, target, params)
             permutation_table = permutation_values(fitted_model, X_test, y_test)
-            save_results(permutation_table, "permutation_values")
+            save_results(permutation_table, f"permutation_values_{kind}")
             permutation_plot(permutation_table, "feature_analysis_figures", kind)
         else:
             pass

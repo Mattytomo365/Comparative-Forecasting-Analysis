@@ -120,7 +120,7 @@ def fit_model(train: pd.DataFrame,
         print(diagnostics)
 
     elif kind == "xgboost":
-        fitted_model = model.fit(X_train, y_train, verbose=True) # fit on remaining training data
+        fitted_model = model.fit(X_train, y_train, verbose=False) # fit on remaining training data
 
     elif kind == "lasso":
         fitted_model = model.fit(X_train, y_train)

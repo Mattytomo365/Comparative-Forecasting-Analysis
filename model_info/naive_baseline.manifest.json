@@ -1,0 +1,15 @@
+{
+  "kind": "naive",
+  "stage": "baseline",
+  "target": "sales",
+  "parameters": {},
+  "artifacts": {
+    "oos": {
+      "path": "results/naive_predictions_baseline.csv"
+    },
+    "metrics": {
+      "path": "results/naive_metrics_baseline.csv"
+    }
+  },
+  "created_at": "20260402-193047"
+}

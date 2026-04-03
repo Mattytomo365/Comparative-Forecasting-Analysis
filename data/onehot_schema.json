@@ -2,16 +2,11 @@
   "external_events": [
     "edge_hill_freshers_week",
     "grand_national",
-    "ormskirk_christmas_lights_switch_on",
     "ormskirk_festival_summer_bank_holiday",
     "ormskirk_gingerbread_festival",
     "ormskirk_medieval_festival_coronation_park"
   ],
   "holiday": [
-    "bonfire_night",
-    "boxing_day",
-    "christmas_day",
-    "christmas_eve",
     "early_may_bank_holiday",
     "easter_monday",
     "easter_sunday",
