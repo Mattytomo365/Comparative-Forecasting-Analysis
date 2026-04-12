@@ -14,35 +14,23 @@ def daily_labels(ax) -> None:
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%d %b"))
     ax.tick_params(axis="x", rotation=30)
 
-def performance_residuals(oos_baseline: pd.DataFrame, 
+def residual_plots(oos_baseline: pd.DataFrame, 
                    oos_tuned: pd.DataFrame, 
                    model: str, 
                    folder: str) -> None:
     '''
-    Plot model residuals to analyse accuracy across folds
+    Plot model residuals to analyse accuracy across tuned and baseline configurations
     '''
-    fig, ax = plt.subplots(1, 2, figsize=(16, 5))
-    # baseline residuals
-    ax[0].scatter(oos_baseline["date"], oos_baseline["forecasted data"], linestyle="None", label="actual")
-    ax[0].scatter(oos_baseline["date"], oos_baseline["actual data"], linestyle="None", marker="+", label="forecasted")
-    ax[0].vlines(oos_baseline["date"], oos_baseline["actual data"], oos_baseline["forecasted data"], colors="red", linestyles=":", linewidth=1, alpha=0.55)
-    ax[0].set_title(f"OOS residuals over time (baseline)")
-    ax[0].set_ylabel("value")
-    ax[0].set_xlabel("date")
-    ax[0].legend()
-    # tuned residuals
-    ax[1].scatter(oos_tuned["date"], oos_tuned["forecasted data"], linestyle="None", label="actual")
-    ax[1].scatter(oos_tuned["date"], oos_tuned["actual data"], linestyle="None", marker="+", label="forecasted")
-    ax[1].vlines(oos_tuned["date"], oos_tuned["actual data"], oos_tuned["forecasted data"], colors="red", linestyles=":", linewidth=1, alpha=0.55)
-    ax[1].set_title(f"OOS residuals over time (tuned)")
-    ax[1].set_ylabel("value")
-    ax[1].set_xlabel("date")
-    ax[1].legend()
+    fig, ax = plt.subplots()
+    ax.scatter(oos_baseline["date"], oos_baseline["actual data"] - oos_baseline["forecasted data"], label="baseline") # baseline residuals
+    ax.scatter(oos_tuned["date"], oos_tuned["actual data"] - oos_tuned["forecasted data"], label="tuned") # tuned residuals
+    ax.axhline(0, color="black", linewidth=1)
 
-    fig.suptitle(f"Performance residuals - baseline and tuned ({model})")
-    fig.subplots_adjust(wspace=0.35)
-    daily_labels(ax[0])
-    daily_labels(ax[1])
+    ax.set_title(f"OOS residuals over time - {model}")
+    ax.set_ylabel("actual values - forecasted values")
+    ax.set_xlabel("date")
+    ax.legend()
+    daily_labels(ax)
     fig.tight_layout(pad=1.2)
     save_figure(fig, f"residual_{model}", folder)
 
@@ -199,7 +187,7 @@ def plot_all() -> None:
             metrics_tune = load_metrics(f"results/{model}_metrics_tuned.csv")
             metrics_tuned.append(metrics_tune)
             
-            performance_residuals(oos_baseline, oos_tune, model, "evaluation_figures")
+            residual_plots(oos_baseline, oos_tune, model, "evaluation_figures")
 
     
 

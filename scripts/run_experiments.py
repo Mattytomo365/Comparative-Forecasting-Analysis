@@ -1,10 +1,10 @@
 from src.dataset.load_save import load_csv, load_metrics
 from src.analysis.feature_analysis import ablation_plots, permutation_values, permutation_plot, permutation_preparation
 from src.analysis.impute_analysis import impute_analysis_plots
-from src.analysis.tuning_analysis import delta_plots, tuning_residuals
+from src.analysis.tuning_analysis import delta_plots
 from src.models.tuning import read_configuration
 from src.models.testing import backtest
-from src.models.training import time_split, fit_model, feature_cols
+from src.models.training import time_split, feature_cols
 from results.save_results import save_results
 '''
 Module for feature analysis, data preprocessing analysis, and tuning analysis
@@ -61,7 +61,6 @@ def run(data_path="data/sales_daily_processed.csv", target="sales"):
         metrics_tuned.append(metrics_tune)
         oos_baseline = load_csv(f"results/{kind}_predictions_baseline.csv")
         oos_tune = load_csv(f"results/{kind}_predictions_tuned.csv")
-        tuning_residuals(oos_baseline, oos_tune, kind, "tuning_analysis_figures")
 
         # feature analysis
         # grouped ablation experiments
