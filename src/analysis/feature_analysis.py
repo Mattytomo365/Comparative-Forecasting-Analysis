@@ -9,9 +9,6 @@ from typing import Any, Mapping
 Explores uplift and feature importance metrics over different periods for different metrics
 '''
 
-UPLIFT_COLS = ["holiday", "internal_event", "external_event"] # skips numerical columns for sales uplift calculations
-OUT_COLS = ["tag", "n", "avg", "uplift"]
-
 def ablation_plots(metrics_tuned: list[pd.DataFrame],
                 ablation_metrics: list[pd.DataFrame],
                 models: list[str], 

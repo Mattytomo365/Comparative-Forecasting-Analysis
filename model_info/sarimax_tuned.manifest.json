@@ -9,7 +9,7 @@
       1
     ],
     "seasonal_order": [
-      0,
+      1,
       1,
       1,
       7
@@ -23,5 +23,5 @@
       "path": "results/sarimax_metrics_tuned.csv"
     }
   },
-  "created_at": "20260402-193754"
+  "created_at": "20260415-211243"
 }

@@ -39,7 +39,7 @@ def feature_cols(df: pd.DataFrame) -> list[str]:
 
 
 def make_estimator(X_train: pd.DataFrame, 
-                   y_train: pd.Series, 
+                   y_train: pd.Series,
                    kind: str, 
                    params: Mapping[str, Any]) -> Any:
     '''
@@ -48,7 +48,7 @@ def make_estimator(X_train: pd.DataFrame,
     # Lasso
     if kind == "lasso":
         lasso_pipe = Pipeline([ # lasso pipeline
-            ("imputer", SimpleImputer(strategy="median", add_indicator=True)),
+            ("imputer", SimpleImputer(strategy="median", add_indicator=False)),
             ("scaler", StandardScaler()),
             ("model", Lasso(max_iter=15000, tol=1e-3, selection="cyclic", random_state=42, **params))
         ])
@@ -58,7 +58,7 @@ def make_estimator(X_train: pd.DataFrame,
         return XGBRegressor(n_estimators=4000, random_state=42, n_jobs=-1, **params)
     # SARIMAX
     if kind == "sarimax":
-        drop_cols = [c for c in X_train.columns if c.startswith("sales_lag") or c.startswith("sales_roll")]
+        drop_cols = [c for c in X_train.columns if c.startswith("sales_lag") or c.startswith("sales_roll") or c.startswith("dow") or c.startswith("doy")]
         X_train_sarimax = X_train.drop(columns=drop_cols)
         sarimax_params = {"enforce_stationarity": False, "enforce_invertibility": False, **params}
         return SARIMAX(endog=y_train, exog=X_train_sarimax, **sarimax_params)
@@ -101,7 +101,7 @@ def fit_sarimax_model(model: Any) -> tuple[Any, dict[str, Any]]:
     best_diagnostics["method"] = "best_llf_fallback"
     return best_results, best_diagnostics
 
-def fit_model(train: pd.DataFrame,  
+def fit_model(train: pd.DataFrame, 
             kind: str, 
             features: list[str], 
             target: str, 
@@ -135,7 +135,9 @@ def predict_model(X_test: pd.Series,
     Forms sales predictions based off fitted model passed
     '''
     if kind == "sarimax":
-        preds = fitted_model.get_forecast(steps=len(X_test), exog=X_test).predicted_mean
+        drop_cols = [c for c in X_test.columns if c.startswith("sales_lag") or c.startswith("sales_roll") or c.startswith("dow") or c.startswith("doy")]
+        X_test_sarimax = X_test.drop(columns=drop_cols)
+        preds = fitted_model.get_forecast(steps=len(X_test_sarimax), exog=X_test_sarimax).predicted_mean
 
     elif kind == "xgboost" or kind == "lasso":
         preds = fitted_model.predict(X_test)
