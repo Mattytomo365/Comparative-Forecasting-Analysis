@@ -22,8 +22,8 @@ def impute_analysis_plots(global_median_df: pd.DataFrame,
     absolute_error_plot(median_oos_list, models, "Absolute error over time for tuned models with global median imputation", "absolute_error_median_impute", "imputation_analysis_figures")
     absolute_error_plot(mean_oos_list, models, "Absolute error over time for tuned models with dow mean imputation", "absolute_error_mean_impute", "imputation_analysis_figures")
 
-    median_ranked = ranked_summary(median_oos_list, models)
-    mean_ranked = ranked_summary(mean_oos_list, models)
+    median_ranked = ranked_summary(median_metrics_list, models)
+    mean_ranked = ranked_summary(mean_metrics_list, models)
 
     ranked_table(median_ranked, "Ranked metrics table (tuned models with global median imputation)", "metrics_table_median_impute", "imputation_analysis_figures")
     ranked_table(mean_ranked, "Ranked metrics table (tuned models with dow mean imputation)", "metrics_table_mean_impute", "imputation_analysis_figures")
