@@ -73,7 +73,7 @@ def metrics_plots(metrics_list: list[pd.DataFrame],
     
     fig, axes = plt.subplots(1, 3, figsize=(14, 4))
 
-    for ax, metric in zip(axes, metric_cols, models):
+    for ax, metric in zip(axes, metric_cols):
         fold_1 = [df.loc[df["window"] == 1, metric].iloc[0] for df in metrics_list]
         fold_2 = [df.loc[df["window"] == 2, metric].iloc[0] for df in metrics_list]
         ax.bar(x - width / 2, fold_1, width, label="fold 1")
