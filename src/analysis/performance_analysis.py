@@ -73,7 +73,7 @@ def metrics_plots(metrics_list: list[pd.DataFrame],
     
     fig, axes = plt.subplots(1, 3, figsize=(14, 4))
 
-    for ax, metric in zip(axes, metric_cols):
+    for ax, metric in zip(axes, metric_cols, models):
         fold_1 = [df.loc[df["window"] == 1, metric].iloc[0] for df in metrics_list]
         fold_2 = [df.loc[df["window"] == 2, metric].iloc[0] for df in metrics_list]
         ax.bar(x - width / 2, fold_1, width, label="fold 1")
@@ -114,29 +114,28 @@ def absolute_error_plot(oos_list: list[pd.DataFrame],
     save_figure(fig, file_name, folder)
 
 
-def ranked_summary(oos_list: list[pd.DataFrame], 
-                   models: list[str], 
-                   primary: str = "mae") -> pd.DataFrame:
+def ranked_summary(metrics_list: list[pd.DataFrame], 
+                models: list[str], 
+                primary: str = "mae") -> pd.DataFrame:
     '''
     Generate a ranked table for summary of findings
     '''
-    # calculate overall metrics for entire holdout
+    metric_cols = ["MAE", "RMSE", "MASE"]
+    
+    # Average fold-wise metrics
     rows = []
-    for oos, model in zip(oos_list, models):
-        y_test = oos["actual data"]
-        y_pred = oos["forecasted data"]
-
-        mae = float(mean_absolute_error(y_test, y_pred))
-        rmse = float(root_mean_squared_error(y_test, y_pred))
-        
-        rows.append({
-            "model": model,
-            "mae": mae,
-            "rmse": rmse,
-        })
+    for model, df in zip(models, metrics_list):
+        model_metrics = df.loc[df["model"] == model]
+        rows.append(
+            {
+                "model": model,
+                "mae": model_metrics["MAE"].mean(),
+                "rmse": model_metrics["RMSE"].mean(),
+                "mase": model_metrics["MASE"].mean(),
+            }
+        )
 
     summary = pd.DataFrame(rows)
-
     summary["rank"] = summary[primary].rank(method="dense", ascending=True).astype(int)
 
     return summary.sort_values(["rank", "model"]).reset_index(drop=True)
@@ -160,7 +159,6 @@ def plot_all() -> None:
     '''
     Centralises execution of all comparative experiments
     '''
-    primary_models = ["lasso", "sarimax", "xgboost"]
     all_models = ["naive", "lasso", "sarimax", "xgboost"]
     oos_baselines = []
     oos_tuned = []
@@ -200,8 +198,8 @@ def plot_all() -> None:
     absolute_error_plot(oos_baselines, all_models, "Absolute error over time for all baseline models", "absolute_error_baseline", "evaluation_figures")
     absolute_error_plot(oos_tuned, all_models, "Absolute error over time for all tuned models", "absolute_error_tuned", "evaluation_figures")
 
-    baselines_ranked = ranked_summary(oos_baselines, all_models)
-    tuned_ranked = ranked_summary(oos_tuned, all_models)
+    baselines_ranked = ranked_summary(metrics_baselines, all_models)
+    tuned_ranked = ranked_summary(metrics_tuned, all_models)
 
     ranked_table(baselines_ranked, "Ranked metrics table (baselines)", "metrics_table_baseline", "evaluation_figures")
     ranked_table(tuned_ranked, "Ranked metrics table (tuned)", "metrics_table_tuned", "evaluation_figures")
