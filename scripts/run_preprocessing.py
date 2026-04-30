@@ -22,7 +22,10 @@ def run(raw_path="data/sales_daily.csv", out_path="data/sales_daily_processed.cs
 
     # data cleaning
     train, _ = time_split(df)
-    df_mean_dow, df_med_dow, df_med_global = clean_data(df_merged, train)
+    df_mean_dow, df_med_dow, df_med_global, dow_mean_summary, dow_median_summary, global_median_summary = clean_data(df_merged, train)
+    print(dow_median_summary)
+    print(dow_mean_summary)
+    print(global_median_summary)
 
     # data encoding
     train_med_dow, _ = time_split(df_med_dow)
@@ -35,9 +38,6 @@ def run(raw_path="data/sales_daily.csv", out_path="data/sales_daily_processed.cs
     print(df_med_dow)
 
     # feature engineering
-    # train_mean_dow = time_split(df_mean_dow)
-    # train_med_global = time_split(df_med_global)
-
     df_mean_dow = add_cyclical(df_mean_dow)
     df_med_dow = add_cyclical(df_med_dow)
     df_med_global = add_cyclical(df_med_global)

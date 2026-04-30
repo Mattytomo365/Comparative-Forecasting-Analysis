@@ -89,8 +89,8 @@ def apply_missing_imputer(df: pd.DataFrame,
 
     # set 0 for missing sales on holidays due to closures
     out["closed"] = 0  
-    out.loc[m_sales & m_holiday, "sales"] = 0
-    out.loc[m_sales & m_holiday, "closed"] = 1 # 0 sales on holiday = closed
+    out.loc[missing_before & m_holiday, "sales"] = 0
+    out.loc[missing_before & m_holiday, "closed"] = 1 # 0 sales on holiday = closed
 
     # impute remaining missing sales
     remaining_m_sales = out["sales"].isna()
@@ -169,9 +169,9 @@ def clean_data(df: pd.DataFrame, train_df: pd.DataFrame):
             .pipe(coerce_numeric))
     
     stats = fit_missing_imputer(train_df)
-    dow_mean_df = apply_missing_imputer(df, stats, "mean_dow")
-    dow_median_df = apply_missing_imputer(df, stats, "med_dow")
-    global_median_df = apply_missing_imputer(df, stats, "med_global")
+    dow_mean_df, dow_mean_summary = apply_missing_imputer(df, stats, "mean_dow")
+    dow_median_df, dow_median_summary = apply_missing_imputer(df, stats, "med_dow")
+    global_median_df, global_median_summary = apply_missing_imputer(df, stats, "med_global")
 
     dow_mean_df = handle_duplicates(dow_mean_df)
     dow_median_df = handle_duplicates(dow_median_df)
@@ -181,4 +181,4 @@ def clean_data(df: pd.DataFrame, train_df: pd.DataFrame):
     dow_median_df = handle_outliers(dow_median_df)
     global_median_df = handle_outliers(global_median_df)
     
-    return dow_mean_df, dow_median_df, global_median_df
+    return dow_mean_df, dow_median_df, global_median_df, dow_mean_summary, dow_median_summary, global_median_summary
