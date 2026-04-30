@@ -77,49 +77,65 @@ def fit_missing_imputer(df: pd.DataFrame) -> dict[str, Any]:
     } 
 
 def apply_missing_imputer(df: pd.DataFrame, 
-                          stats: dict[str, Any], strategy: str) -> pd.DataFrame:
+                          stats: dict[str, Any], strategy: str) -> tuple[pd.DataFrame, dict[str, Any]]:
     '''
     Carries out imputation on all data
     Facilitates a separation of concerns between fitting and applying imputation
     '''
     out = df.copy()
     out["day_of_week"] = out["date"].dt.day_name()
-    m_sales = out["sales"].isna()
+    missing_before = out["sales"].isna()
     m_holiday = out["holiday"].fillna("").ne("")
-    missing_sum = int(m_sales.sum())
+
     # set 0 for missing sales on holidays due to closures
     out["closed"] = 0  
     out.loc[m_sales & m_holiday, "sales"] = 0
     out.loc[m_sales & m_holiday, "closed"] = 1 # 0 sales on holiday = closed
 
     # impute remaining missing sales
-    m_sales = out["sales"].isna()
+    remaining_m_sales = out["sales"].isna()
 
     if strategy == "med_dow":
-        if m_sales.any():
+        if remaining_m_sales.any():
             med_dow = pd.Series(stats["med_dow"])
-
-            out.loc[m_sales, "sales"] = (
-                out.loc[m_sales, "day_of_week"].map(med_dow).round(0) # maps imputable sales rows through day-specific median
+            out.loc[remaining_m_sales, "sales"] = (
+                out.loc[remaining_m_sales, "day_of_week"].map(med_dow).round(0) # maps imputable sales rows through day-specific median
             )
+            basis = "day_of_week_median"
     
-    if strategy == "mean_dow":
-        if m_sales.any():
+    elif strategy == "mean_dow":
+        if remaining_m_sales.any():
             mean_dow = pd.Series(stats["mean_dow"])
-
-            out.loc[m_sales, "sales"] = (
-                out.loc[m_sales, "day_of_week"].map(mean_dow).round(0)
-            )  
+            out.loc[remaining_m_sales, "sales"] = (
+                out.loc[remaining_m_sales, "day_of_week"].map(mean_dow).round(0)
+            )
+            basis = "day_of_week_mean"
 
     elif strategy == "med_global":
-        if m_sales.any():
+        if remaining_m_sales.any():
             med_global = stats["med_global"]
+            out.loc[remaining_m_sales, "sales"] = (
+                out.loc[remaining_m_sales].fillna(med_global).round(0) # maps imputable sales rows using global median 
+            )
+            basis = "global_median"
+    else:
+        raise ValueError(f"Unkown strategy: {strategy}")
 
-            out.loc[m_sales, "sales"] = (
-                out.loc[m_sales].fillna(med_global).round(0) # maps imputable sales rows using global median 
-            )   
+    missing_after = out["sales"].isna()  
 
-    return out.drop(columns=["day_of_week"])
+    summary = {
+        "strategy": strategy,
+        "basis": basis,
+        "rows_total": len(out),
+        "missing_sales_before": int(missing_before.sum()),
+        "holiday_zero_fills": int(m_holiday.sum()),
+        "strategy_fills": int(remaining_m_sales.sum()),
+        "total_fills": int((missing_before & out["sales"].notna()).sum()),
+        "missing_sales_after": int(missing_after.sum()),
+        "closed_rows_flagged": int(out["closed"].sum()),
+    }
+
+    return out.drop(columns=["day_of_week"]), summary
 
 
 def handle_duplicates(df: pd.DataFrame) -> pd.DataFrame:
