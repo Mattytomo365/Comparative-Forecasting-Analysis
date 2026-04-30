@@ -162,12 +162,14 @@ def train_predict(train: pd.DataFrame,
                 test: pd.DataFrame,
                 kind: str,
                 target: str, 
-                params: Mapping[str, Any]) -> tuple[pd.DataFrame, dict[str, float]]:
+                params: Mapping[str, Any],
+                show_train_head: bool = False) -> tuple[pd.DataFrame, dict[str, float]]:
     '''
     Wraps fitting, predicting, and scoring into one centralised function
     '''
     train = add_train_lag_roll(train)
-    print(train.head())
+    if show_train_head:
+        print(train.head())
     features = feature_cols(train)
 
 

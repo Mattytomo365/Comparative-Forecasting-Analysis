@@ -13,32 +13,27 @@ Acts as a thin CLI to centralise the workflow in the correct pipeline order as f
 8. Run additional analysis of features, imputation strategy, and training optimisation strategy
 '''
 
-
-# ADD A CONFIG LAYER??????
-
-
-
-
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="restaurant_forecasting",
                                  description="One-click pipeline for restaurant sales forecasting")
-    ap.add_argument("--data", default="data/restaurant_data_processed.csv") # path to processed input data
+    ap.add_argument("--data", default="data/sales_daily_processed.csv") # path to processed input data
     ap.add_argument("--raw-data", default="data/sales_daily.csv") # path to raw input data
     ap.add_argument("--target", default="sales") # target column name
 
     sub = ap.add_subparsers(dest="cmd", required=True) # create subcommands
 
-    sub.add_parser("run_preprocessing") # `python -m … preprocess`
-    sub.add_parser("run_data_analysis") # `python -m … analyse`
-    sub.add_parser("run_modelling") # `python -m … train`
-    sub.add_parser("run_comparison") # `python -m … compare`
-    sub.add_parser("run_experiments") # `python -m … analyse_features`
-    sub.add_parser("all") # `python -m … all`
+    # `python -m … [parser]
+    sub.add_parser("run_preprocessing")
+    sub.add_parser("run_data_analysis")
+    sub.add_parser("run_modelling")
+    sub.add_parser("run_comparison")
+    sub.add_parser("run_experiments")
+    sub.add_parser("all")
 
     args = ap.parse_args(argv) # parse CLI arguments into an object
 
-    # For each possible subcommand, call the corresponding stage function.
-    # Using `args.cmd in ("stage","all")` lets "all" run every stage in order.
+    # for each possible subcommand, call the corresponding stage function
+    # using `args.cmd in ("stage","all")` lets "all" run every stage in order
 
     if args.cmd in ("run_preprocessing", "all"):
         run_preprocessing.run(args.raw_data, args.data)

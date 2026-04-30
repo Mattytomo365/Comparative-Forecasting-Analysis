@@ -27,7 +27,7 @@ def backtest(df: pd.DataFrame,
             oos, metrics = naive_forecast(train[target], test[target], test)
  
         else:
-            oos, metrics = train_predict(train, test, kind, target, params)
+            oos, metrics = train_predict(train, test, kind, target, params, show_train_head=True)
 
         oos["model"] = kind
         oos["window"] = window
