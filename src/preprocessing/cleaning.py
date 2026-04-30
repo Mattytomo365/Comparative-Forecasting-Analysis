@@ -146,7 +146,7 @@ def handle_duplicates(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def handle_outliers(df, z=5.0):
+def handle_outliers(df, z=5.0) -> tuple[pd.DataFrame, dict[str, Any]]:
     '''
     Handles outliers carefully using threshold-style rules (z-score)
     '''
@@ -154,9 +154,15 @@ def handle_outliers(df, z=5.0):
     keep = out["holiday"].fillna("").ne("")
     col = "sales"
     mu, sd = out[col].mean(), out[col].std(ddof=0)
-    within = (out[col] - mu).abs() <= z * sd # reveal values outside the threshold
-    out = out[within | keep].copy()
-    return out.reset_index(drop=True)
+    extreme_outlier_mask = (out[col] - mu).abs() > z * sd
+    removed_outlier_mask = extreme_outlier_mask & ~keep
+    out = out[~removed_outlier_mask].copy()
+    summary = {
+        "outlier_z_threshold": float(z),
+        "extreme_outliers_flagged": int(extreme_outlier_mask.sum()),
+        "extreme_outliers_removed": int(removed_outlier_mask.sum()),
+    }
+    return out.reset_index(drop=True), summary
 
 
 def clean_data(df: pd.DataFrame, train_df: pd.DataFrame):
@@ -177,8 +183,8 @@ def clean_data(df: pd.DataFrame, train_df: pd.DataFrame):
     dow_median_df = handle_duplicates(dow_median_df)
     global_median_df = handle_duplicates(global_median_df)
 
-    dow_mean_df = handle_outliers(dow_mean_df)
-    dow_median_df = handle_outliers(dow_median_df)
-    global_median_df = handle_outliers(global_median_df)
+    dow_median_df, dow_meadian_outlier_summary = handle_outliers(dow_median_df)
+    dow_mean_df, _ = handle_outliers(dow_mean_df)
+    global_median_df, _ = handle_outliers(global_median_df)
     
-    return dow_mean_df, dow_median_df, global_median_df, dow_mean_summary, dow_median_summary, global_median_summary
+    return dow_mean_df, dow_median_df, global_median_df, dow_mean_summary, dow_median_summary, global_median_summary, dow_meadian_outlier_summary

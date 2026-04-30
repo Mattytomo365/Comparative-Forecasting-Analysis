@@ -1,9 +1,11 @@
+import pandas as pd
 from src.dataset.load_save import load_csv
 from src.preprocessing.cleaning import clean_data
 from src.preprocessing.encoding import fit_onehot_schema, save_onehot_schema, apply_onehot_schema
 from src.preprocessing.features import add_cyclical
 from src.dataset.prepare import merge_data
 from src.models.training import time_split
+from src.preprocessing.auditing import audit_stage
 
 '''
 Module for data ingestion, cleaning, and transformation functions
@@ -22,10 +24,24 @@ def run(raw_path="data/sales_daily.csv", out_path="data/sales_daily_processed.cs
 
     # data cleaning
     train, _ = time_split(df)
-    df_mean_dow, df_med_dow, df_med_global, dow_mean_summary, dow_median_summary, global_median_summary = clean_data(df_merged, train)
+    df_mean_dow, df_med_dow, df_med_global, dow_mean_summary, dow_median_summary, global_median_summary, dow_median_outlier_summary = clean_data(df_merged, train)
     print(dow_median_summary)
     print(dow_mean_summary)
     print(global_median_summary)
+
+    audit = [
+        audit_stage(df, "raw"),
+        audit_stage(df_merged, "merged"),
+        audit_stage(
+            df_med_dow,
+            "cleaned_imputed",
+            extreme_outliers_flagged=dow_median_outlier_summary["extreme_outliers_flagged"],
+            extreme_outliers_removed=dow_median_outlier_summary["extreme_outliers_removed"],
+        ),
+    ]
+    print(pd.DataFrame(audit).to_string(index=False))
+
+
 
     # data encoding
     train_med_dow, _ = time_split(df_med_dow)

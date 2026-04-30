@@ -167,6 +167,7 @@ def train_predict(train: pd.DataFrame,
     Wraps fitting, predicting, and scoring into one centralised function
     '''
     train = add_train_lag_roll(train)
+    print(train.head())
     features = feature_cols(train)
 
 
