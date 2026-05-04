@@ -35,14 +35,14 @@ def run(raw_path="data/sales_daily.csv", out_path="data/sales_daily_processed.cs
     schema = fit_onehot_schema(train_med_dow)
     save_onehot_schema(schema, "data/onehot_schema.json")
 
-    df_encoded = apply_onehot_schema(df_mean_dow, schema, drop_original=True)
-    df_med_dow = apply_onehot_schema(df_med_dow, schema, drop_original=True)
+    df_mean_dow = apply_onehot_schema(df_mean_dow, schema, drop_original=True)
+    df_encoded = apply_onehot_schema(df_med_dow, schema, drop_original=True)
     df_med_global = apply_onehot_schema(df_med_global, schema, drop_original=True)
     print(df_encoded.head())
 
     # feature engineering
+    df_mean_dow = add_cyclical(df_mean_dow)
     df_engineered = add_cyclical(df_encoded)
-    df_med_dow = add_cyclical(df_med_dow)
     df_med_global = add_cyclical(df_med_global)
     print(df_engineered.head())
 
