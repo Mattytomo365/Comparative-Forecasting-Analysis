@@ -4,13 +4,11 @@
 
 ## Overview
 
-This is my BSc Computer Science capstone project. The aim is to establish an accurate and efficient approach to time-series forecasting for hospitality sales. 
+This is my BSc Computer Science capstone project. The aim is to establish an accurate and efficient approach to time-series forecasting for hospitality sales whilst analysing external factors which influence predictive performance. 
 
-Three models - SARIMAX, XGBoost, Lasso - will all be trained and tested on the same cleaned and preprocessed dataset. The dataset contains exogenous factors (e.g. weather/events/holidays), added using publicly available sources, and engineered features (Fourier/cyclical features and lags/rolling statistics) to establish more meaningful relationships between catgeories and model seasonality throughout.
+Three models - SARIMAX, XGBoost, Lasso - are all trained, tuned, and tested on the same cleaned and preprocessed dataset, following identical time-aware expanding-window evaluation protocols to ensure the validity of results. The dataset contains exogenous factors (e.g. weather/events/holidays), added using publicly available sources, and engineered features (Fourier/cyclical features and lags/rolling statistics) to establish more meaningful relationships between catgeories and characterise short-term and long-term periodicity.
 
-Onehot schema generated during data encoding will be persisted and re-used, minimising drifts in data between train/test and inference. Models will also be tested using rolling-origin backtesting, reducing overfitting of models and the leakage of data, and models will be cross-validated with a time-aware expanding/rolling window approach, paired with hyperparameter tuning to establish parameter configurations which yeild the best accuracy.
-
-Performance metrics such as MASE, MAE, and RMSE are reported both before and after model tuning, and across all models for comparison. The Lasso approach will hold a strong baseline for the other more complex models to be compared against. Evaluation interpretations and findings will be presented in both tabular and graphical formats to convey findings of model performance and EDA performed on the historical dataset effectively, with modelling decisions guided by EDA diagnostics e.g., autocorrelation.
+Performance metrics such as MASE, MAE, and RMSE are reported both before and after model tuning, and across all models for comparison. All three models are benchmarked against a seasonal naive baseline to contextualise forecasting performance. Evaluation interpretations and findings will be presented in both tabular and graphical formats to convey findings of model performance and EDA performed on the historical dataset effectively, with modelling decisions guided by EDA diagnostics e.g., autocorrelation and decomposition.
 
 Additional experiments analyse the effects of decisions made throughout the pipeline, such as missing-value imputation analysis, traning optimisation analysis, and feature-contribution analysis.
 
