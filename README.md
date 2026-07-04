@@ -3,14 +3,18 @@
 ---
 
 ## Overview
+BSc Computer Science Capstone Project. Conducted a comparative evaluation of machine-learning and statistical approaches for forecasting hospitality sales, including SARIMAX, XGBoost and Lasso regression.
 
-This is my BSc Computer Science capstone project. The aim is to establish an accurate and efficient approach to time-series forecasting for hospitality sales whilst analysing external factors which influence predictive performance. 
+Cleaned and preprocessed time-series sales data supplied by a local hospitality establishment, combining it with external explanatory variables from publicly available sources, including weather, events and public holidays. Engineered calendar and seasonal features, including cyclical/Fourier-based variables, alongside lagged and rolling statistical features.
 
-Three models - SARIMAX, XGBoost, Lasso - are all trained, tuned, and tested on the same cleaned and preprocessed dataset, following identical time-aware expanding-window evaluation protocols to ensure the validity of results. The dataset contains exogenous factors (e.g. weather/events/holidays), added using publicly available sources, and engineered features (Fourier/cyclical features and lags/rolling statistics) to establish more meaningful relationships between catgeories and characterise short-term and long-term periodicity.
+Performed exploratory time-series analysis to identify trend and seasonality patterns and inform modelling decisions, using autocorrelation diagnostics and Fourier visualisations.
 
-Performance metrics such as MASE, MAE, and RMSE are reported both before and after model tuning, and across all models for comparison. All three models are benchmarked against a seasonal naive baseline to contextualise forecasting performance. Evaluation interpretations and findings will be presented in both tabular and graphical formats to convey findings of model performance and EDA performed on the historical dataset effectively, with modelling decisions guided by EDA diagnostics e.g., autocorrelation and decomposition.
+Trained and evaluated models through a strict time-aware expanding-window validation approach, both before and after hyperparameter optimisation. Particular attention was given to preventing temporal data leakage, with lagged and rolling features generated recursively at each forecasting point.
 
-Additional experiments analyse the effects of decisions made throughout the pipeline, such as missing-value imputation analysis, traning optimisation analysis, and feature-contribution analysis.
+Compared model performance using MAE, MASE and RMSE, supported by graphical and tabular visualisations designed to make findings interpretable. Additional experiments assessed the impact of feature sets, training optimisation strategies and missing-sales imputation methods on predictive performance.
+
+I plan to extend the work into a full-stack forecasting platform using Angular, ASP.NET Web API and a Flask-based REST API, giving hospitality users accessible visibility into forecasts and the factors influencing them.
+
 
 ---
 
